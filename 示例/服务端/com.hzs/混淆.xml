@@ -1,0 +1,40 @@
+<config>
+    <jars>
+        <jar in="dist\com.zzkj.da4lg3cs2vt4.yu4sc4.jar" out="com.zzkj.da4lg3cs2vt4.yu4sc4.jar"/>
+    </jars>
+
+    <classpath>
+        <jar name="C:\Program Files\Java\jre7\lib\rt.jar"/>
+		<jar name="C:\Program Files\Java\jre7\lib\rt.jar"/>
+		<jar name="C:\Program Files\Java\jdk1.7\jre\lib\jce.jar"/>
+		<jar name="C:\Program Files\Java\jdk1.7\jre\lib\ext\QRCode.jar"/>
+		<jar name="C:\Program Files\Java\jdk1.7\jre\lib\ext\mail.jar"/>
+		<jar name="C:\Program Files\Java\jdk1.7\jre\lib\ext\org.hzs.extjs.jar"/>
+		<jar name="C:\Program Files\Java\jdk1.7\jre\lib\ext\org.hzs.jar"/>
+		<jar name="C:\Program Files\Java\jdk1.7\jre\lib\ext\org.hzs.json.jar"/>
+		<jar name="C:\Program Files\Java\jdk1.7\jre\lib\ext\org.hzs.jsoup.jar"/>
+		<jar name="C:\Program Files\Java\jdk1.7\jre\lib\ext\org.hzs.lang.jar"/>
+		<jar name="C:\Program Files\Java\jdk1.7\jre\lib\ext\org.hzs.logging.jar"/>
+		<jar name="C:\Program Files\Java\jdk1.7\jre\lib\ext\org.hzs.mongodb.jar"/>
+		<jar name="C:\Program Files\Java\jdk1.7\jre\lib\ext\org.hzs.server.jar"/>
+		<jar name="C:\Program Files\Java\jdk1.7\jre\lib\ext\org.hzs.sql.jar"/>
+		<jar name="C:\Program Files\Java\jdk1.7\jre\lib\ext\org.hzs.公式.jar"/>
+		<jar name="C:\Program Files\Java\jdk1.7\jre\lib\ext\org.hzs.助记文本.jar"/>
+		<jar name="C:\Program Files\Java\jdk1.7\jre\lib\ext\org.hzs.压缩解压.jar"/>
+		<jar name="C:\Program Files\Java\jdk1.7\jre\lib\ext\org.hzs.图像.jar"/>
+		<jar name="C:\Program Files\Java\jdk1.7\jre\lib\ext\org.hzs.图形验证码.jar"/>
+		<jar name="C:\Program Files\Java\jdk1.7\jre\lib\ext\org.hzs.安全.jar"/>
+		<jar name="C:\Program Files\Java\jdk1.7\jre\lib\ext\org.hzs.编码.jar"/>
+		<jar name="C:\Program Files\Java\jdk1.7\jre\lib\ext\org.hzs.金额.jar"/>
+		<jar name="C:\Program Files\Java\jdk1.7\jre\lib\ext\postgresql-9.3-1101.jdbc41.jar"/>
+		<jar name="D:\我的文档\NetBeansProjects\软件\大朗\源码\服务端\com.zzkj.da4lg3cs2vt4.yu4sc4_\dist\com.zzkj.da4lg3cs2vt4.yu4sc4_.jar"/>
+		<jar name="D:\我的文档\NetBeansProjects\软件\大朗\源码\服务端\com.zzkj.da4lg3cs2vt4.yu4sc4.系统\dist\com.zzkj.da4lg3cs2vt4.yu4sc4.系统.jar"/>
+		<jar name="D:\我的文档\NetBeansProjects\软件\大朗\源码\服务端\com.zzkj.da4lg3cs2vt4.yu4sc4.专项\dist\com.zzkj.da4lg3cs2vt4.yu4sc4.专项.jar"/>
+    </classpath>
+
+    <keep-names>
+        <class template="class com.zzkj.da4lg3cs2vt4.yu4sc4.Main">
+			<method template="public main(*)"/>
+        </class>
+    </keep-names>
+</config>
