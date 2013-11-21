@@ -12,8 +12,11 @@ public class Property {
     public static boolean i负载服务_b = true, i业务服务_b = true;
     public static org.hzs.json.JSONArray i集群内服务器列表_ArrayJSON = null;
 
-    public static void init(final int ci第二层负载个數_i) throws java.security.NoSuchAlgorithmException, java.security.spec.InvalidKeySpecException, java.io.UnsupportedEncodingException {
-        int ji最少线程數量_i = 10 + ci第二层负载个數_i;//线程数量：第一层负载1个、第二层负载2+1+1个（还需再预留2个空线程）、公共的2个、数据库1个
+    public static void init(final int ci均衡负载个數_i) throws java.security.NoSuchAlgorithmException, java.security.spec.InvalidKeySpecException, java.io.UnsupportedEncodingException {
+        /*线程数量：
+         权重：静态1个
+         均衡：静态2个、动态3个、预留业务处理1个*/
+        int ji最少线程數量_i = 3 + ci均衡负载个數_i * 4;
         int ji线程數量_i = Runtime.getRuntime().availableProcessors();//根据硬件线程數计算线程池的线程數
         if (ji线程數量_i <= ji最少线程數量_i) {
             ji线程數量_i = ji最少线程數量_i;

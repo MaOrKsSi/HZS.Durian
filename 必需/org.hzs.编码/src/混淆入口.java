@@ -49,9 +49,11 @@ public class 混淆入口 {
         org.hzs.编码.Base64.i编码_byteArray(null);
         org.hzs.编码.Base64.i解码_byteArray(null);
         org.hzs.编码.Base79.i编码_byteArray(null);
-        org.hzs.编码.Base79.i解码_BASE64byteArray(null);
-//      org.hzs.编码.Base94.i编码_byteArray(null);
-//      org.hzs.编码.Base94.i解码_BASE64byteArray(null);
+        org.hzs.编码.Base79.i解码_byteArray(null);
+        org.hzs.编码.Base94.i编码_byteArray(null);
+        org.hzs.编码.Base94.i解码_byteArray(null);
+        org.hzs.编码.Base62.i编码_byteArray(null);
+        org.hzs.编码.Base62.i解码_byteArray(null);
 //      //
 //      org.tool.转码.Escape.g编码_s("");
 //      org.tool.转码.Escape.g解码_s("");

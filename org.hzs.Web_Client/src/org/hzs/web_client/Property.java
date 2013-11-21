@@ -16,10 +16,26 @@ public class Property {
 
     public static void init() throws IOException {
         applet = new applet();
-        //         Class.forName(smallsql.database.SSDriver.class.getName());//本地桌面數據库，用于缓存
+//         Class.forName(smallsql.database.SSDriver.class.getName());//本地桌面數據库，用于缓存
         //取得配置文档路径
         i工作路径_s = System.getProperty("user.dir").trim();
         i工作路径_s = i工作路径_s.replaceAll("\\\\", "/");
+
+        //删除错误日记
+        java.io.File dir = new java.io.File(i工作路径_s);
+        java.io.File[] files = dir.listFiles();
+        if (files != null) {
+            for (int i = 0; i < files.length; i++) {
+                if (files[i].isDirectory()) {
+                    continue;
+                }
+                String FileName = files[i].getName();
+                if (FileName.startsWith("hs_err_pid") && FileName.endsWith(".log")) {
+                    files[i].delete();
+                }
+            }
+        }
+
         if (i工作路径_s.endsWith("/")) {
             i工作路径_s += "lib/";
         } else {

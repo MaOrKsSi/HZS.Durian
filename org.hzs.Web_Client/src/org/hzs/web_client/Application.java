@@ -40,13 +40,15 @@ public class Application extends javax.swing.JApplet {
                     org.hzs.web_client.Property.i本地服务端口_i = ci_JSON.getInt("本地服务端口_i", ji_error);
                     i.图标用图片URL = (java.net.URL) ci_JSON.get("图标用图片URL");
                     //
-                    try {
-                        javax.swing.UIManager.setLookAndFeel("com.jtattoo.plaf.smart.SmartLookAndFeel");
+                    if (!"ubuntu".equals(System.getenv().get("GDMSESSION"))) {
+                        try {
+                            javax.swing.UIManager.setLookAndFeel("com.jtattoo.plaf.smart.SmartLookAndFeel");
 //                        javax.swing.UIManager.setLookAndFeel("com.jtattoo.plaf.aluminium.AluminiumLookAndFeel");
 //                        javax.swing.UIManager.setLookAndFeel("com.jtattoo.plaf.mint.MintLookAndFeel");
 //                        javax.swing.UIManager.setLookAndFeel("com.jtattoo.plaf.fast.FastLookAndFeel");
-                    } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
-                        java.util.logging.Logger.getLogger(Application.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+                        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
+                            java.util.logging.Logger.getLogger(Application.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+                        }
                     }
 
                     org.hzs.web_client.Property.frame = new javax.swing.JFrame("正在登入，请耐心等待......");

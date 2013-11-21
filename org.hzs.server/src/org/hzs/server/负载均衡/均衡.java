@@ -1,7 +1,9 @@
 package org.hzs.server.负载均衡;
 
+import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.crypto.BadPaddingException;
@@ -13,11 +15,16 @@ public class 均衡 extends __ {
     private static final java.util.Random d不确定數 = new java.util.Random();
     private int i内部端口_i, i外部端口_i;
     private static int i业务处理端口_i;
+    private static byte[] i空返回值_byteArray = null;
+    private org.hzs.server.业务.__ d业务 = null;
 
     protected static void init_() throws java.net.SocketException, java.io.IOException {
         if (i公网IP_s == null) {
             return;
         }
+
+        i空返回值_byteArray = "{success:false,_:''}".getBytes("UTF-8");
+
         i业务处理端口_i = i中心端口_i + 1;
         org.hzs.server.负载均衡.Property.d线程池.execute(new 请求开始业务(i中心端口_i));
         org.hzs.server.负载均衡.Property.d线程池.execute(new 监聽请求开始业务());
@@ -34,6 +41,7 @@ public class 均衡 extends __ {
         if (i公网IP_s != null) {
             org.hzs.server.负载均衡.Property.d线程池.execute(new 监聽对外业务(i外部端口_i));
         }
+        org.hzs.server.负载均衡.Property.d线程池.execute(new 清理超时或访问频率过快的session());
     }
 
     private class 监聽对外业务 implements Runnable {
@@ -78,7 +86,7 @@ public class 均衡 extends __ {
 
             }
             自用 ji自用 = new 自用();
-            while (true) {
+            for (;;) {
                 try {
                     //刷新内连
                     jg刷新内连();
@@ -107,7 +115,7 @@ public class 均衡 extends __ {
                                 }
                                 if (ji自用.cont < 4) {//取得的客户数据过短
                                     ji自用.i发送缓冲区 = java.nio.ByteBuffer.allocate(org.hzs.server.负载均衡.Property.i接收缓冲区容量_i);
-                                    ji自用.i发送缓冲区.put("{success:true,_:''}".getBytes("UTF-8"));
+                                    ji自用.i发送缓冲区.put(i空返回值_byteArray);
                                     ji自用.i发送缓冲区.flip();
                                     i发缓冲_Map.put(ji自用.client外.toString(), ji自用.i发送缓冲区);
                                     ji自用.client外.register(d外_selector, java.nio.channels.SelectionKey.OP_WRITE);
@@ -138,9 +146,13 @@ public class 均衡 extends __ {
                     //循环外连写，返回数据
                     java.util.ArrayList<java.nio.channels.SocketChannel> delList = new java.util.ArrayList<java.nio.channels.SocketChannel>();
                     for (java.nio.channels.SocketChannel jji外连写 : i外连写_List) {
-                        jji外连写.write(i发缓冲_Map.remove(jji外连写.toString()));
-                        delList.add(jji外连写);
-                        jji外连写.register(d外_selector, java.nio.channels.SelectionKey.OP_READ);
+                        try {
+                            jji外连写.write(i发缓冲_Map.remove(jji外连写.toString()));
+                            delList.add(jji外连写);
+                            jji外连写.register(d外_selector, java.nio.channels.SelectionKey.OP_READ);
+                        } catch (java.io.IOException ex) {
+                            Logger.getLogger(均衡.class.getName()).log(Level.SEVERE, null, ex);
+                        }
                     }
                     i外连写_List.removeAll(delList);
 
@@ -155,6 +167,7 @@ public class 均衡 extends __ {
             class 自用 implements Cloneable {
 
                 java.nio.ByteBuffer i发送缓冲区 = null;
+                java.nio.channels.Selector selector = null;
                 java.nio.channels.SocketChannel client内 = null, client外 = null;
                 java.util.Set<java.nio.channels.SelectionKey> selectionKeys内 = null;
                 java.util.Iterator<java.nio.channels.SelectionKey> iterator内 = null;
@@ -173,6 +186,7 @@ public class 均衡 extends __ {
                     selectionKeys内 = null;
                     iterator内 = null;
                     selectionKey内 = null;
+                    selector = null;
                 }
             }// </editor-fold>
             自用 ji自用 = null;
@@ -182,8 +196,6 @@ public class 均衡 extends __ {
                 if (ji自用 == null) {
                     ji自用 = new 自用();
                     org.hzs.常用.d对象池.put(自用.class.getName(), ji自用);
-                } else {
-                    ji自用 = (自用) org.hzs.常用.d对象池.get(自用.class.getName());
                 }
                 ji自用 = ji自用.d副本();
                 // </editor-fold>
@@ -191,8 +203,9 @@ public class 均衡 extends __ {
                 while (iterator.hasNext()) {
                     String ji_s = iterator.next();
                     try {
-                        i内连_Map.get(ji_s).selectNow();
-                        ji自用.selectionKeys内 = i内连_Map.get(ji_s).selectedKeys();
+                        ji自用.selector = i内连_Map.get(ji_s);
+                        ji自用.selector.selectNow();
+                        ji自用.selectionKeys内 = ji自用.selector.selectedKeys();
                         ji自用.iterator内 = ji自用.selectionKeys内.iterator();
                         while (ji自用.iterator内.hasNext()) {
                             ji自用.selectionKey内 = ji自用.iterator内.next();
@@ -203,26 +216,37 @@ public class 均衡 extends __ {
                                 ji自用.cont = ji自用.client内.read(ji自用.i发送缓冲区);
                                 ji自用.i_byteArray = ji自用.i发送缓冲区.array();
                                 ji自用.i_byteArray = java.util.Arrays.copyOf(ji自用.i_byteArray, ji自用.cont);
-                                ji自用.i_byteArray = jg业务处理(ji自用.client外, ji自用.i发送缓冲区.array());
-                                ji自用.i发送缓冲区.clear();
-                                ji自用.i发送缓冲区.put(ji自用.i_byteArray);
-                                ji自用.i发送缓冲区.flip();
+                                ji自用.i_byteArray = jg业务处理(ji自用.client外, ji自用.i_byteArray);
                                 ji_s = ji自用.client外.toString();
-                                i发缓冲_Map.put(ji_s, ji自用.i发送缓冲区);
+                                if (ji自用.i_byteArray == null) {
+                                    ji自用.client外.close();
+                                } else {
+                                    ji自用.i发送缓冲区.clear();
+                                    ji自用.i发送缓冲区.put(ji自用.i_byteArray);
+                                    ji自用.i发送缓冲区.flip();
+                                    i发缓冲_Map.put(ji_s, ji自用.i发送缓冲区);
+                                    ji自用.client外.register(d外_selector, java.nio.channels.SelectionKey.OP_WRITE);//取得返回值，开始监听写操作
+                                }
                                 i外2内_Map.remove(ji_s);
                                 i收缓冲_Map.remove(ji_s);
                                 i外连读_List.remove(ji自用.client外);
                                 ji自用.iterator内.remove();
-                                ji自用.client内.register(ji自用.selectionKey内.selector(), java.nio.channels.SelectionKey.OP_WRITE);
-                                ji自用.client外.register(d外_selector, java.nio.channels.SelectionKey.OP_WRITE);//取得返回值，开始监听写操作
+                                ji自用.client内.register(ji自用.selector, java.nio.channels.SelectionKey.OP_WRITE);
                             }
                         }
                     } catch (java.io.IOException ex) {//刷不通的，移除
-                        java.nio.channels.Selector selector = i内连_Map.remove(ji_s);
-                        java.util.Iterator<java.nio.channels.SelectionKey> iterator1 = selector.keys().iterator();
-                        while (iterator1.hasNext()) {
-                            ji_s = ((java.nio.channels.SocketChannel) iterator1.next().channel()).toString();
-                            i外2内_Map.remove(i内2外_Map.remove(ji_s).toString());
+                        java.nio.channels.Selector selector = null;
+                        java.util.Iterator<java.nio.channels.SelectionKey> iterator1 = null;
+                        try {
+                            selector = i内连_Map.remove(ji_s);
+                            iterator1 = selector.keys().iterator();
+                            while (iterator1.hasNext()) {
+                                ji_s = ((java.nio.channels.SocketChannel) iterator1.next().channel()).toString();
+                                i外2内_Map.remove(i内2外_Map.remove(ji_s).toString());
+                            }
+                            selector.close();
+                        } catch (IOException ex1) {
+                            Logger.getLogger(均衡.class.getName()).log(Level.SEVERE, null, ex1);
                         }
                     }
                 }
@@ -312,8 +336,7 @@ public class 均衡 extends __ {
                 if (ji自用.i_JSON.getJSONObject("$", ji_error).size() == 0) {//维持连接
                     String ji_s = client外.toString();
                     java.nio.ByteBuffer ji发送缓冲区 = java.nio.ByteBuffer.allocate(org.hzs.server.负载均衡.Property.i发送缓冲区容量_i);
-                    byte[] ji返回给客户端_byteArray = "{success:true,_:''}".getBytes("UTF-8");
-                    ji返回给客户端_byteArray = org.hzs.安全.AES.i加密_byteArray(ji返回给客户端_byteArray, ji自用.session.AES_Key);
+                    byte[] ji返回给客户端_byteArray = org.hzs.安全.AES.i加密_byteArray(i空返回值_byteArray, ji自用.session.AES_Key);
                     ji发送缓冲区.put(ji返回给客户端_byteArray);
                     ji发送缓冲区.flip();
                     i发缓冲_Map.put(ji_s, ji发送缓冲区);
@@ -360,66 +383,99 @@ public class 均衡 extends __ {
         }
 
         private boolean jg向业务服务发送數据_1(final java.nio.channels.SocketChannel ci外连, final String ci内网IP_s, final java.net.InetSocketAddress cd通信链, final byte[] ci待发送數据_byteArray) throws java.io.IOException {
-            class 自用 {
+            // <editor-fold defaultstate="collapsed" desc="自用">
+            class 自用 implements Cloneable {
 
                 java.util.Set<java.nio.channels.SelectionKey> selectionKeys = null;
                 java.util.Iterator<java.nio.channels.SelectionKey> iterator = null;
                 java.nio.channels.SelectionKey selectionKey = null;
                 java.nio.channels.SocketChannel client内 = null;
                 java.nio.channels.Selector selector = null;
-                java.nio.ByteBuffer sendbuffer = java.nio.ByteBuffer.allocate(org.hzs.server.负载均衡.Property.i发送缓冲区容量_i);
-            }
-            自用 ji自用 = new 自用();
-            //
-            synchronized (this) {
-                ji自用.selector = i内连_Map.get(ci内网IP_s);
-                if (ji自用.selector == null) {//若未存在选择器，则创建
-                    ji自用.selector = java.nio.channels.Selector.open();
-                    int ji连接终端数量_i = i内服务器列表.get(ci内网IP_s);//根据权重确定连接数量
-                    for (int ji_i = 0; ji_i < ji连接终端数量_i; ji_i++) {
-                        ji自用.client内 = java.nio.channels.SocketChannel.open();
-                        ji自用.client内.configureBlocking(false);
-                        ji自用.client内.register(ji自用.selector, java.nio.channels.SelectionKey.OP_CONNECT);
-                        ji自用.client内.connect(cd通信链);
-                    }
-                    i内连_Map.put(ci内网IP_s, ji自用.selector);
-                    ji自用.selector.selectNow();
-                }
-            }
+                java.nio.ByteBuffer sendbuffer = null;
 
-            ji自用.selectionKeys = ji自用.selector.selectedKeys();
-            ji自用.iterator = ji自用.selectionKeys.iterator();
-            while (ji自用.iterator.hasNext()) {
-                ji自用.selectionKey = ji自用.iterator.next();
-                if (ji自用.selectionKey.isConnectable()) {
-                    ji自用.iterator.remove();
-                    ji自用.client内 = (java.nio.channels.SocketChannel) ji自用.selectionKey.channel();
-                    if (ji自用.client内.isConnectionPending()) {
-                        ji自用.client内.finishConnect();
+                自用 d副本() throws CloneNotSupportedException {
+                    自用 jd = (自用) super.clone();
+                    jd.sendbuffer = java.nio.ByteBuffer.allocate(org.hzs.server.负载均衡.Property.i发送缓冲区容量_i);
+                    return jd;
+                }
+
+                void close() {
+                    selectionKeys = null;
+                    iterator = null;
+                    selectionKey = null;
+                    client内 = null;
+                    selector = null;
+                    sendbuffer = null;
+                }
+            }// </editor-fold>
+            自用 ji自用 = null;
+            try {
+                ji自用 = (自用) org.hzs.常用.d对象池.get(自用.class.getName());
+                if (ji自用 == null) {
+                    ji自用 = new 自用();
+                }
+                ji自用 = ji自用.d副本();
+                //
+                synchronized (this) {
+                    ji自用.selector = i内连_Map.get(ci内网IP_s);
+                    if (ji自用.selector == null) {//若未存在选择器，则创建
+                        ji自用.selector = java.nio.channels.Selector.open();
+                        //根据权重确定连接数量
+                        int ji连接终端数量_i = i内服务器列表.get(ci内网IP_s) * Runtime.getRuntime().availableProcessors();
+                        ji连接终端数量_i = (int) java.lang.Math.sqrt(ji连接终端数量_i);
+                        for (int ji_i = 0; ji_i < ji连接终端数量_i; ji_i++) {
+                            ji自用.client内 = java.nio.channels.SocketChannel.open();
+                            ji自用.client内.configureBlocking(false);
+                            ji自用.client内.register(ji自用.selector, java.nio.channels.SelectionKey.OP_CONNECT);
+                            ji自用.client内.connect(cd通信链);
+                        }
+                        i内连_Map.put(ci内网IP_s, ji自用.selector);
+                        ji自用.selector.selectNow();
+                    }
+                }
+
+                ji自用.selectionKeys = ji自用.selector.selectedKeys();
+                ji自用.iterator = ji自用.selectionKeys.iterator();
+                while (ji自用.iterator.hasNext()) {
+                    ji自用.selectionKey = ji自用.iterator.next();
+                    if (ji自用.selectionKey.isConnectable()) {
+                        ji自用.iterator.remove();
+                        ji自用.client内 = (java.nio.channels.SocketChannel) ji自用.selectionKey.channel();
+                        if (ji自用.client内.isConnectionPending()) {
+                            ji自用.client内.finishConnect();
+                            ji自用.sendbuffer.clear();
+                            ji自用.sendbuffer.put(ci待发送數据_byteArray);
+                            ji自用.sendbuffer.flip();
+                            ji自用.client内.write(ji自用.sendbuffer);
+                            i内2外_Map.put(ji自用.client内.toString(), ci外连);
+                            i外2内_Map.put(ci外连.toString(), ji自用.client内);
+                        }
+                        ji自用.client内.register(ji自用.selector, java.nio.channels.SelectionKey.OP_READ);
+                        return true;
+                    } else if (ji自用.selectionKey.isWritable()) {
+                        ji自用.iterator.remove();
                         ji自用.sendbuffer.clear();
+                        ji自用.client内 = (java.nio.channels.SocketChannel) ji自用.selectionKey.channel();
                         ji自用.sendbuffer.put(ci待发送數据_byteArray);
+                        //将缓冲区各标志复位,因为向里面put了数据标志被改变要想从中读取数据发向服务器,就要复位  
                         ji自用.sendbuffer.flip();
                         ji自用.client内.write(ji自用.sendbuffer);
+                        ji自用.client内.register(ji自用.selector, java.nio.channels.SelectionKey.OP_READ);
                         i内2外_Map.put(ji自用.client内.toString(), ci外连);
                         i外2内_Map.put(ci外连.toString(), ji自用.client内);
+                        return true;
                     }
-                    ji自用.client内.register(ji自用.selector, java.nio.channels.SelectionKey.OP_READ);
-                    return true;
-                } else if (ji自用.selectionKey.isWritable()) {
-                    ji自用.iterator.remove();
-                    ji自用.sendbuffer.clear();
-                    ji自用.client内 = (java.nio.channels.SocketChannel) ji自用.selectionKey.channel();
-                    ji自用.sendbuffer.put(ci待发送數据_byteArray);
-                    //将缓冲区各标志复位,因为向里面put了数据标志被改变要想从中读取数据发向服务器,就要复位  
-                    ji自用.sendbuffer.flip();
-                    ji自用.client内.write(ji自用.sendbuffer);
-                    ji自用.client内.register(ji自用.selector, java.nio.channels.SelectionKey.OP_READ);
-                    i内2外_Map.put(ji自用.client内.toString(), ci外连);
-                    i外2内_Map.put(ci外连.toString(), ji自用.client内);
-                    return true;
+                }
+                return false;
+            } catch (CloneNotSupportedException ex) {
+                Logger.getLogger(均衡.class.getName()).log(Level.SEVERE, null, ex);
+                return false;
+            } finally {
+                if (ji自用 != null) {
+                    ji自用.close();
+                    ji自用 = null;
                 }
             }
-            return false;
         }
 
         private void jg向业务服务发送數据(final java.nio.channels.SocketChannel ci外连, final byte[] ci待发送數据_byteArray) {
@@ -461,6 +517,7 @@ public class 均衡 extends __ {
                 ji自用 = ji自用.d副本();
                 ji会晤 = ji会晤.d副本();
                 // </editor-fold>
+
                 ji自用.session = session_集合.get(d外2session_Map.get(ci外连.toString()));
                 //随机选择业务服务器，不仅能降低网路压力，而且确保每个业务节点的压力相仿。
                 for (;;) {
@@ -473,12 +530,14 @@ public class 均衡 extends __ {
                             ji键_s = ji键_sArray;
                         }
                     }
-                    ji会晤.address = java.net.InetAddress.getByName(ji键_s);//ping this IP 
-                    if (!(ji会晤.address instanceof java.net.Inet4Address) && !(ji会晤.address instanceof java.net.Inet6Address)) {//非IP4或IP6，提示错误
-                        //若不连通，说明该服务器出现故障或被人为停止，反正不能工作，所以在列表中删除此服务器。
-                        org.hzs.server.负载均衡.__.i内总权重_i -= i内服务器列表.get(ji键_s);
-                        i内服务器列表.remove(ji键_s);
-                        continue;
+                    if (!ji键_s.equals("127.0.0.1")) {
+                        ji会晤.address = java.net.InetAddress.getByName(ji键_s);//ping this IP 
+                        if (!(ji会晤.address instanceof java.net.Inet4Address) && !(ji会晤.address instanceof java.net.Inet6Address)) {//非IP4或IP6，提示错误
+                            //若不连通，说明该服务器出现故障或被人为停止，反正不能工作，所以在列表中删除此服务器。
+                            org.hzs.server.负载均衡.__.i内总权重_i -= i内服务器列表.get(ji键_s);
+                            i内服务器列表.remove(ji键_s);
+                            continue;
+                        }
                     }
                     ji会晤.d通信链 = (java.net.InetSocketAddress) org.hzs.常用.d对象池.get(ji键_s + ":" + i内部端口_i);
                     if (ji会晤.d通信链 == null) {
@@ -595,6 +654,7 @@ public class 均衡 extends __ {
                 Logger.getLogger(均衡.class.getName()).log(Level.SEVERE, null, ex);
                 ji未捕获错误_b = false;
                 return null;
+//                return org.hzs.安全.AES.i加密_byteArray(i空返回值_byteArray, session_集合.get(d外2session_Map.remove(client外.toString())).AES_Key);
             } finally {
                 // <editor-fold defaultstate="collapsed" desc="释放资源">
                 if (ji自用 != null) {
@@ -607,6 +667,7 @@ public class 均衡 extends __ {
                 }
                 // </editor-fold>
                 if (ji未捕获错误_b) {
+                    return null;
                 }
             }
         }
@@ -649,7 +710,7 @@ public class 均衡 extends __ {
                 int cont;
             }
             自用 ji自用 = new 自用();
-            while (true) {
+            for(;;) {
                 try {
                     // 选择一组键，并且相应的通道已经打开  
                     ji自用.cont = selector.selectNow();
@@ -789,7 +850,7 @@ public class 均衡 extends __ {
                     } else {
                         ji会晤.i发送缓冲区 = java.nio.ByteBuffer.allocate(org.hzs.server.负载均衡.Property.i发送缓冲区容量_i);
                         //向缓冲区中输入数据  
-                        ji会晤.i发送缓冲区.put("{success:true,_:''}".getBytes("UTF-8"));
+                        ji会晤.i发送缓冲区.put(i空返回值_byteArray);
                     }
                     i发送缓冲区集.put(client.toString(), ji会晤.i发送缓冲区);
                     ji会晤.i发送缓冲区 = null;
@@ -797,7 +858,7 @@ public class 均衡 extends __ {
                     Logger.getLogger(均衡.class.getName()).log(Level.SEVERE, null, ex);
                     ji会晤.i发送缓冲区 = java.nio.ByteBuffer.allocate(org.hzs.server.负载均衡.Property.i发送缓冲区容量_i);
                     //向缓冲区中输入数据  
-                    ji会晤.i发送缓冲区.put("{success:true,_:''}".getBytes());
+                    ji会晤.i发送缓冲区.put(i空返回值_byteArray);
                     //将缓冲区各标志复位,因为向里面put了数据标志被改变要想从中读取数据发向服务器,就要复位  
                     ji会晤.i发送缓冲区.flip();
                     //
@@ -866,7 +927,7 @@ public class 均衡 extends __ {
             java.nio.channels.SelectionKey selectionKey = null;
             int count = 0;
             byte[] ji_byteArray = null;
-            while (true) {
+            for(;;) {
                 try {
                     // 选择一组键，并且相应的通道已经打开  
                     selector.select();
@@ -1017,7 +1078,7 @@ public class 均衡 extends __ {
                 //随机选择负载服务器，不仅能降低网路压力，而且确保每个业务节点的压力相仿。基于管理软的客户总是需要退出，因此未考虑每台负载节点的所负责的客户端数量。
                 for (;;) {
                     String ji键_s = null;
-                    int ji权重_i = d不确定數.nextInt(org.hzs.server.负载均衡.__.i外总权重_i);
+                    int ji权重_i = d不确定數.nextInt(i外总权重_i);
                     int ji下限权重_i = 0, ji上限权重_i = 0;
                     for (String ji键1_s : i外服务器列表.keySet()) {
                         ji上限权重_i += i外服务器列表.get(ji键1_s);
@@ -1025,19 +1086,21 @@ public class 均衡 extends __ {
                             ji键_s = ji键1_s;
                         }
                     }
-                    ji会晤.address = java.net.InetAddress.getByName(ji键_s);//ping this IP 
-                    if (!(ji会晤.address instanceof java.net.Inet4Address) && !(ji会晤.address instanceof java.net.Inet6Address)) {//非IP4或IP6，提示错误
-                        //若不连通，说明该服务器出现故障或被人为停止，反正不能工作，所以在列表中删除此服务器。
-                        org.hzs.server.负载均衡.__.i外总权重_i -= org.hzs.server.负载均衡.__.i外服务器列表.get(ji键_s);
-                        org.hzs.server.负载均衡.__.i外服务器列表.remove(ji键_s);
-                        continue;
+                    if (!ji键_s.equals("127.0.0.1")) {
+                        ji会晤.address = java.net.InetAddress.getByName(ji键_s);//ping this IP 
+                        if (!(ji会晤.address instanceof java.net.Inet4Address) && !(ji会晤.address instanceof java.net.Inet6Address)) {//非IP4或IP6，提示错误
+                            //若不连通，说明该服务器出现故障或被人为停止，反正不能工作，所以在列表中删除此服务器。
+                            i外总权重_i -= i外服务器列表.get(ji键_s);
+                            i外服务器列表.remove(ji键_s);
+                            continue;
+                        }
                     }
                     //将服务专向寻得的最小服务器。因处理速度很快，所以未采用nio，维持bio不变。
                     try {
                         ji会晤.d通信链 = new java.net.Socket(ji键_s, i业务处理端口_i);
                     } catch (java.io.IOException ex) {
-                        org.hzs.server.负载均衡.__.i外总权重_i -= org.hzs.server.负载均衡.__.i外服务器列表.get(ji键_s);
-                        org.hzs.server.负载均衡.__.i外服务器列表.remove(ji键_s);
+                        i外总权重_i -= i外服务器列表.get(ji键_s);
+                        i外服务器列表.remove(ji键_s);
                         continue;
                     }
                     {
@@ -1171,6 +1234,62 @@ public class 均衡 extends __ {
                         }
                         d通信服务 = null;
                     }
+                }
+            }
+        }
+    }
+
+    private class 清理超时或访问频率过快的session implements Runnable {
+
+        @Override
+        public void run() {
+            // <editor-fold defaultstate="collapsed" desc="自用">
+            class 自用 implements Cloneable {
+
+                org.hzs.json.JSONObject i_JSON = null;
+                Object[] sessionid_Array = null;
+                org.hzs.server.负载均衡.Session session = null;
+                long i当前时间_l;
+
+                void close() {
+                    if (i_JSON != null) {
+                        i_JSON.clear();
+                        i_JSON = null;
+                    }
+                }
+            }// </editor-fold>
+            自用 ji自用 = null;
+            try {
+                ji自用 = new 自用();
+                //
+                for (;;) {
+                    try {
+                        java.lang.Thread.sleep(5000);
+                    } catch (InterruptedException ex) {
+                    }
+                    ji自用.i当前时间_l = java.util.Calendar.getInstance().getTimeInMillis();
+                    if (org.hzs.server.负载均衡.__.session_集合.size() <= 0) {
+                        continue;
+                    }
+                    Set<Integer> keys = org.hzs.server.负载均衡.__.session_集合.keySet();
+                    for (Integer jjkey_i : keys) {
+                        ji自用.session = org.hzs.server.负载均衡.__.session_集合.get(jjkey_i);
+                        //移除超时session 或 访问过于频繁的session
+                        if (ji自用.i当前时间_l - ji自用.session.i最近使用时间_l > org.hzs.server.负载均衡.Session.时限_l
+                                || ji自用.session.i访问频率_i > org.hzs.server.负载均衡.Property.i频率上限_i) {
+                            keys.remove(jjkey_i);
+                            if (d业务 != null) {
+                                d业务.removeSession(jjkey_i);
+                            }
+                        } else {
+                            ji自用.session.i访问频率_i = 0;//重置访问频率
+                        }
+                    }
+                }
+            } finally {
+                if (ji自用 != null) {
+                    ji自用.close();
+                    ji自用 = null;
                 }
             }
         }

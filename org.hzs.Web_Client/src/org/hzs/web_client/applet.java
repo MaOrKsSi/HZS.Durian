@@ -46,7 +46,7 @@ public final class applet extends org.hzs.Client {
                 return "{success:false,_:'" + ji_JSON.getString("错误1", ex) + "'}";
             } catch (error ex1) {
                 Logger.getLogger(applet.class.getName()).log(Level.SEVERE, null, ex1);
-                return "{success:false,_:'本地错误！'}";
+                return "{success:false,_:'莫名其妙的错误！'}";
             }
         }
     }

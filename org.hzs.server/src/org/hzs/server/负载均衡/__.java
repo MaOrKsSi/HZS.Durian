@@ -9,7 +9,6 @@ import java.net.SocketException;
 public abstract class __ {
 
     protected static volatile java.util.TreeMap<Integer, org.hzs.server.负载均衡.Session> session_集合 = new java.util.TreeMap<>();
-    protected static org.hzs.server.业务.__ d业务 = null;
     protected static int i中心端口_i = org.hzs.server.负载均衡.Property.i中心端口_i;
     protected static volatile int i内总权重_i = 0, i外总权重_i = 0;
     protected static int i权重_i = 0;
@@ -34,6 +33,13 @@ public abstract class __ {
     }
 
     private static void init1() throws SocketException {
+        int ji1_i = org.hzs.server.负载均衡.Property.i集群内服务器列表_ArrayJSON.size();
+        for (int ji2_i = 0; ji2_i < ji1_i; ji2_i++) {
+            i集群内服务器列表.push(org.hzs.server.负载均衡.Property.i集群内服务器列表_ArrayJSON.getString(ji2_i));
+        }
+        i集群内服务器列表.remove(i内网IP_s);
+        i集群内服务器列表.push("127.0.0.1");
+        //
         java.util.Enumeration<java.net.NetworkInterface> mEnumeration = null;
         try {
             mEnumeration = java.net.NetworkInterface.getNetworkInterfaces();
@@ -45,21 +51,18 @@ public abstract class __ {
                     if (!inetAddress.isLoopbackAddress()) {
                         // 直接返回本地IP地址  
                         i内网IP_s = inetAddress.getHostAddress();
-                        if (!i内网IP_s.contains(":")) {
+                        if (i集群内服务器列表.indexOf(i内网IP_s) > -1) {
                             break;
+                        } else {
+                            i内网IP_s = null;
                         }
                     }
                 }
             }
             //
-            int ji1_i = org.hzs.server.负载均衡.Property.i集群内服务器列表_ArrayJSON.size();
-            for (int ji2_i = 0; ji2_i < ji1_i; ji2_i++) {
-                i集群内服务器列表.push(org.hzs.server.负载均衡.Property.i集群内服务器列表_ArrayJSON.getString(ji2_i));
-            }
-            if (i集群内服务器列表.size() > 0) {
-                if (i内网IP_s == null) {
-                    i内网IP_s = "127.0.0.1";
-                }
+
+            if (i集群内服务器列表.size() > 0 && i内网IP_s == null) {
+                i内网IP_s = "127.0.0.1";
             }
         } finally {
             mEnumeration = null;
@@ -81,7 +84,11 @@ public abstract class __ {
                     ip = address.nextElement();
                     if (!ip.isSiteLocalAddress() && !ip.isLoopbackAddress() && !ip.getHostAddress().contains(":")) {// 外网IP
                         i公网IP_s = ip.getHostAddress();
-                        return;
+                        if (i公网IP_s.contains(":")) {
+                            i公网IP_s = null;//不采用IPV6
+                        } else {
+                            return;
+                        }
                     }
                 }
             }

@@ -38,54 +38,29 @@ public final class Base64 {
     }
 
     public static byte[] i编码_byteArray(final byte[] ci待编码_byteArray) {
-        byte[] bytes;
-        int modulus = ci待编码_byteArray.length % 3;
-        if (modulus == 0) {
-            bytes = new byte[(4 * ci待编码_byteArray.length) / 3];
-        } else {
-            bytes = new byte[4 * ((ci待编码_byteArray.length / 3) + 1)];
-        }
-        int dataLength = (ci待编码_byteArray.length - modulus);
-        int a1;
-        int a2;
-        int a3;
-        for (int i = 0, j = 0; i < dataLength; i += 3, j += 4) {
-            a1 = ci待编码_byteArray[i] & 0xff;
-            a2 = ci待编码_byteArray[i + 1] & 0xff;
-            a3 = ci待编码_byteArray[i + 2] & 0xff;
-            bytes[j] = encodingTable[(a1 >>> 2) & 0x3f];
-            bytes[j + 1] = encodingTable[((a1 << 4) | (a2 >>> 4)) & 0x3f];
-            bytes[j + 2] = encodingTable[((a2 << 2) | (a3 >>> 6)) & 0x3f];
-            bytes[j + 3] = encodingTable[a3 & 0x3f];
-        }
-        int b1;
-        int b2;
-        int b3;
-        int d1;
-        int d2;
-        switch (modulus) {
-            case 0: /* nothing left to do */
+        //编码
+        byte[] bytes = ji编码_byteArray(ci待编码_byteArray);
 
-                break;
+        //转换编码
+        for (int ji_i = 0; ji_i < bytes.length; ji_i++) {
+            bytes[ji_i] = encodingTable[bytes[ji_i]];
+        }
+
+        //补全编码
+        int modulus = ci待编码_byteArray.length % 3;
+        if (modulus != 0) {
+            int ji_i = 4 * ((ci待编码_byteArray.length / 3) + 1);
+            bytes = java.util.Arrays.copyOf(bytes, ji_i);
+        }
+        switch (modulus) {
             case 1:
-                d1 = ci待编码_byteArray[ci待编码_byteArray.length - 1] & 0xff;
-                b1 = (d1 >>> 2) & 0x3f;
-                b2 = (d1 << 4) & 0x3f;
-                bytes[bytes.length - 4] = encodingTable[b1];
-                bytes[bytes.length - 3] = encodingTable[b2];
                 bytes[bytes.length - 2] = (byte) '=';
                 bytes[bytes.length - 1] = (byte) '=';
                 break;
             case 2:
-                d1 = ci待编码_byteArray[ci待编码_byteArray.length - 2] & 0xff;
-                d2 = ci待编码_byteArray[ci待编码_byteArray.length - 1] & 0xff;
-                b1 = (d1 >>> 2) & 0x3f;
-                b2 = ((d1 << 4) | (d2 >>> 4)) & 0x3f;
-                b3 = (d2 << 2) & 0x3f;
-                bytes[bytes.length - 4] = encodingTable[b1];
-                bytes[bytes.length - 3] = encodingTable[b2];
-                bytes[bytes.length - 2] = encodingTable[b3];
                 bytes[bytes.length - 1] = (byte) '=';
+                break;
+            default:
                 break;
         }
         return bytes;
@@ -93,46 +68,23 @@ public final class Base64 {
 
     public static byte[] i解码_byteArray(final byte[] ci待解码_byteArray) {
         byte[] ji_byteArray, ji待解码_byteArray;
-        byte b1;
-        byte b2;
-        byte b3;
-        byte b4;
+
+        //截除多于编码
         ji待解码_byteArray = discardNonBase64Bytes(ci待解码_byteArray);
         if (ji待解码_byteArray[ji待解码_byteArray.length - 2] == '=') {
-            ji_byteArray = new byte[(((ji待解码_byteArray.length / 4) - 1) * 3) + 1];
+            ji待解码_byteArray = java.util.Arrays.copyOf(ji待解码_byteArray, ji待解码_byteArray.length - 2);
         } else if (ji待解码_byteArray[ji待解码_byteArray.length - 1] == '=') {
-            ji_byteArray = new byte[(((ji待解码_byteArray.length / 4) - 1) * 3) + 2];
-        } else {
-            ji_byteArray = new byte[((ji待解码_byteArray.length / 4) * 3)];
+            ji待解码_byteArray = java.util.Arrays.copyOf(ji待解码_byteArray, ji待解码_byteArray.length - 1);
         }
-        for (int i = 0, j = 0; i < (ji待解码_byteArray.length - 4); i += 4, j += 3) {
-            b1 = decodingTable[ji待解码_byteArray[i]];
-            b2 = decodingTable[ji待解码_byteArray[i + 1]];
-            b3 = decodingTable[ji待解码_byteArray[i + 2]];
-            b4 = decodingTable[ji待解码_byteArray[i + 3]];
-            ji_byteArray[j] = (byte) ((b1 << 2) | (b2 >> 4));
-            ji_byteArray[j + 1] = (byte) ((b2 << 4) | (b3 >> 2));
-            ji_byteArray[j + 2] = (byte) ((b3 << 6) | b4);
+
+        //转换编码
+        for (int ji_i = 0; ji_i < ji待解码_byteArray.length; ji_i++) {
+            ji待解码_byteArray[ji_i] = encodingTable[ji待解码_byteArray[ji_i]];
         }
-        if (ji待解码_byteArray[ji待解码_byteArray.length - 2] == '=') {
-            b1 = decodingTable[ji待解码_byteArray[ji待解码_byteArray.length - 4]];
-            b2 = decodingTable[ji待解码_byteArray[ji待解码_byteArray.length - 3]];
-            ji_byteArray[ji_byteArray.length - 1] = (byte) ((b1 << 2) | (b2 >> 4));
-        } else if (ji待解码_byteArray[ji待解码_byteArray.length - 1] == '=') {
-            b1 = decodingTable[ji待解码_byteArray[ji待解码_byteArray.length - 4]];
-            b2 = decodingTable[ji待解码_byteArray[ji待解码_byteArray.length - 3]];
-            b3 = decodingTable[ji待解码_byteArray[ji待解码_byteArray.length - 2]];
-            ji_byteArray[ji_byteArray.length - 2] = (byte) ((b1 << 2) | (b2 >> 4));
-            ji_byteArray[ji_byteArray.length - 1] = (byte) ((b2 << 4) | (b3 >> 2));
-        } else {
-            b1 = decodingTable[ji待解码_byteArray[ji待解码_byteArray.length - 4]];
-            b2 = decodingTable[ji待解码_byteArray[ji待解码_byteArray.length - 3]];
-            b3 = decodingTable[ji待解码_byteArray[ji待解码_byteArray.length - 2]];
-            b4 = decodingTable[ji待解码_byteArray[ji待解码_byteArray.length - 1]];
-            ji_byteArray[ji_byteArray.length - 3] = (byte) ((b1 << 2) | (b2 >> 4));
-            ji_byteArray[ji_byteArray.length - 2] = (byte) ((b2 << 4) | (b3 >> 2));
-            ji_byteArray[ji_byteArray.length - 1] = (byte) ((b3 << 6) | b4);
-        }
+
+        //解码
+        ji_byteArray = ji解码_byteArray(ji待解码_byteArray);
+
         return ji_byteArray;
     }
 
@@ -158,5 +110,122 @@ public final class Base64 {
             return false;
         }
         return true;
+    }
+
+    protected static byte[] ji编码_byteArray(final byte[] ci待编码_byteArray) {
+        byte[] bytes;
+        int modulus = ci待编码_byteArray.length % 3;
+        switch (modulus) {
+            case 1:
+                bytes = new byte[4 * (ci待编码_byteArray.length / 3) + 2];
+                break;
+            case 2:
+                bytes = new byte[4 * (ci待编码_byteArray.length / 3) + 3];
+                break;
+            default:
+                bytes = new byte[(4 * ci待编码_byteArray.length) / 3];
+                break;
+        }
+        int dataLength = (ci待编码_byteArray.length - modulus);
+        int a1;
+        int a2;
+        int a3;
+        for (int i = 0, j = 0; i < dataLength; i += 3, j += 4) {
+            a1 = ci待编码_byteArray[i] & 0xff;
+            a2 = ci待编码_byteArray[i + 1] & 0xff;
+            a3 = ci待编码_byteArray[i + 2] & 0xff;
+            bytes[j] = (byte) ((a1 >>> 2) & 0x3f);
+            bytes[j + 1] = (byte) (((a1 << 4) | (a2 >>> 4)) & 0x3f);
+            bytes[j + 2] = (byte) (((a2 << 2) | (a3 >>> 6)) & 0x3f);
+            bytes[j + 3] = (byte) (a3 & 0x3f);
+        }
+        int b1;
+        int b2;
+        int b3;
+        int d1;
+        int d2;
+        switch (modulus) {
+            case 1:
+                d1 = ci待编码_byteArray[ci待编码_byteArray.length - 1] & 0xff;
+                b1 = (d1 >>> 2) & 0x3f;
+                b2 = (d1 << 4) & 0x3f;
+                bytes[bytes.length - 4] = (byte) b1;
+                bytes[bytes.length - 3] = (byte) b2;
+                bytes = java.util.Arrays.copyOf(bytes, bytes.length - 2);
+                break;
+            case 2:
+                d1 = ci待编码_byteArray[ci待编码_byteArray.length - 2] & 0xff;
+                d2 = ci待编码_byteArray[ci待编码_byteArray.length - 1] & 0xff;
+                b1 = (d1 >>> 2) & 0x3f;
+                b2 = ((d1 << 4) | (d2 >>> 4)) & 0x3f;
+                b3 = (d2 << 2) & 0x3f;
+                bytes[bytes.length - 4] = (byte) b1;
+                bytes[bytes.length - 3] = (byte) b2;
+                bytes[bytes.length - 2] = (byte) b3;
+                bytes = java.util.Arrays.copyOf(bytes, bytes.length - 1);
+                break;
+            default: /* nothing left to do */
+
+                break;
+        }
+        return bytes;
+    }
+
+    protected static byte[] ji解码_byteArray(final byte[] ci待解码_byteArray) {
+        byte[] ji_byteArray, ji待解码_byteArray;
+        byte b1;
+        byte b2;
+        byte b3;
+        byte b4;
+        ji待解码_byteArray = ci待解码_byteArray.clone();
+        int modulus = ji待解码_byteArray.length % 4;
+        switch (modulus) {
+            case 0:
+                ji_byteArray = new byte[((ji待解码_byteArray.length / 4) * 3)];
+                break;
+            case 2:
+                ji_byteArray = new byte[((ji待解码_byteArray.length / 4) * 3) + 1];
+                break;
+            case 3:
+                ji_byteArray = new byte[((ji待解码_byteArray.length / 4) * 3) + 2];
+                break;
+            default:
+                return null;
+        }
+        for (int i = 0, j = 0; i < (ji待解码_byteArray.length - 4); i += 4, j += 3) {
+            b1 = ji待解码_byteArray[i];
+            b2 = ji待解码_byteArray[i + 1];
+            b3 = ji待解码_byteArray[i + 2];
+            b4 = ji待解码_byteArray[i + 3];
+            ji_byteArray[j] = (byte) ((b1 << 2) | (b2 >> 4));
+            ji_byteArray[j + 1] = (byte) ((b2 << 4) | (b3 >> 2));
+            ji_byteArray[j + 2] = (byte) ((b3 << 6) | b4);
+        }
+        switch (modulus) {
+            case 0:
+                b1 = ji待解码_byteArray[ji待解码_byteArray.length - 4];
+                b2 = ji待解码_byteArray[ji待解码_byteArray.length - 3];
+                b3 = ji待解码_byteArray[ji待解码_byteArray.length - 2];
+                b4 = ji待解码_byteArray[ji待解码_byteArray.length - 1];
+                ji_byteArray[ji_byteArray.length - 3] = (byte) ((b1 << 2) | (b2 >> 4));
+                ji_byteArray[ji_byteArray.length - 2] = (byte) ((b2 << 4) | (b3 >> 2));
+                ji_byteArray[ji_byteArray.length - 1] = (byte) ((b3 << 6) | b4);
+                break;
+            case 2:
+                b1 = ji待解码_byteArray[ji待解码_byteArray.length - 4];
+                b2 = ji待解码_byteArray[ji待解码_byteArray.length - 3];
+                ji_byteArray[ji_byteArray.length - 1] = (byte) ((b1 << 2) | (b2 >> 4));
+                break;
+            case 3:
+                b1 = ji待解码_byteArray[ji待解码_byteArray.length - 4];
+                b2 = ji待解码_byteArray[ji待解码_byteArray.length - 3];
+                b3 = ji待解码_byteArray[ji待解码_byteArray.length - 2];
+                ji_byteArray[ji_byteArray.length - 2] = (byte) ((b1 << 2) | (b2 >> 4));
+                ji_byteArray[ji_byteArray.length - 1] = (byte) ((b2 << 4) | (b3 >> 2));
+                break;
+            default:
+                return null;
+        }
+        return ji_byteArray;
     }
 }
