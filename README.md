@@ -66,9 +66,11 @@
 　　org.hzs.Web_Client　　提高判断网路是否联通的速度<BR>
 2014年06月22日<BR>
 　　org.hzs.server　　　　修正分配任务时，因节点故障而超时的问题；修正获取负载节点时，未校验访问对象的问题<BR>
-　　org.hzs.Web_Client　　修正推出软件，不退出托盘图标的问题<BR>
+　　org.hzs.Web_Client　　修正退出软件，不退出托盘图标的问题<BR>
 2014年06月26日<BR>
 　　org.hzs.server　　　　在交换权重过程中，加入校验是否为集群内节点的代码<BR>
 2014年07月08日<BR>
 　　org.hzs.server　　　　1、修正了重复select连接。 2、节点死机时，业务处理可再次分配。<BR>
 　　org.hzs.Client　　　　由Web_Client分离出来，专职处理通信<BR>
+2014年07月23日<BR>
+　　org.hzs.server　　　　修正“释放超时连接”的错误<BR>
