@@ -1,0 +1,3 @@
+postgresql-9.3-1101.jdbc41.jar	数据库驱动
+QRCode.jar			二维码
+mail.jar			郵件处理

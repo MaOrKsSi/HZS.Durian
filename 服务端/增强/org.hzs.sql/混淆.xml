@@ -1,0 +1,134 @@
+<config>
+    <jars>
+        <jar in="dist\org.hzs.sql.jar" out="org.hzs.sql.jar"/>
+    </jars>
+
+    <classpath>
+        <jar name="C:\Program Files\Java\jre7\lib\rt.jar"/>
+		<jar name="C:\Program Files\Java\jdk1.7\jre\lib\jce.jar"/>
+		<jar name="D:\我的文档\NetBeansProjects\引擎\服务端\内核\org.hzs.jar"/>
+        <jar name="C:\Program Files\Java\jdk1.7\jre\lib\ext\org.hzs.json.jar"/>
+        <jar name="C:\Program Files\Java\jdk1.7\jre\lib\ext\org.hzs.logging.jar"/>
+        <jar name="C:\Program Files\Java\jdk1.7\jre\lib\ext\postgresql-9.3-1101.jdbc41.jar"/>
+    </classpath>
+
+    <keep-names>
+        <class template="class org.hzs.sql.连接池">
+			<method template="public org.hzs.sql.连接池(*, *, *, *, *)"/>
+            <method template="public d清理终端号()"/>
+            <method template="public d视图(*,*)"/>
+			<method template="public d连接()"/>
+        </class>
+		<class template="interface org.hzs.sql.连接">
+			<method template="public d操作(*,*)"/>
+            <method template="public g关闭()"/>
+            <method template="public g回滚事务()"/>
+			<method template="public g废弃新记录(*)"/>
+			<method template="public g递交事务()"/>
+			<method template="public i_ID(*,*)"/>
+			<method template="public i终端_i()"/>
+        </class>
+		<class template="interface org.hzs.sql.写操作">
+			<method template="public g关闭()"/>
+            <method template="public g执行缓冲()"/>
+            <method template="public g清空缓冲()"/>
+			<method template="public g立即执行()"/>
+			<method template="public g缓冲()"/>
+			<method template="public g置参數(*,*)"/>
+			<method template="public g置参數(*,*,*)"/>
+			<method template="public g置参數_B(*,*)"/>
+			<method template="public g置参數_BD(*,*)"/>
+			<method template="public g置参數_I(*,*)"/>
+			<method template="public g置参數_ID(*,*)"/>
+			<method template="public g置参數_L(*,*)"/>
+			<method template="public g置参數_byteArray(*,*)"/>
+			<method template="public g置参數_s(*,*)"/>
+			<method template="public g置空参數(*,*)"/>
+			<method template="public g置空参數(*,*,*)"/>
+			<method template="public p关闭()"/>
+			<method template="public g置密钥_byteArray(*)"/>
+        </class>
+		<class template="interface org.hzs.sql.视图">
+			<method template="public g关闭()"/>
+			<method template="public g置参數(*,*)"/>
+			<method template="public g置参數(*,*,*)"/>
+			<method template="public g置参數_B(*,*)"/>
+			<method template="public g置参數_BD(*,*)"/>
+			<method template="public g置参數_I(*,*)"/>
+			<method template="public g置参數_ID(*,*)"/>
+			<method template="public g置参數_L(*,*)"/>
+			<method template="public g置参數_byteArray(*,*)"/>
+			<method template="public g置参數_s(*,*)"/>
+			<method template="public g置空参數(*,*)"/>
+			<method template="public g置空参數(*,*,*)"/>
+			<method template="public p关闭()"/>
+			<method template="public g置密钥_byteArray(*)"/>
+			<method template="public g前筆()"/>
+			<method template="public g尾部()"/>
+			<method template="public g後筆()"/>
+			<method template="public g末筆()"/>
+			<method template="public g首筆()"/>
+			<method template="public g首部()"/>
+			<method template="public i值_byteArray(*,*)"/>
+			<method template="public i值(*,*)"/>
+			<method template="public i值_B(*,*)"/>
+			<method template="public i值_BD(*,*)"/>
+			<method template="public i值_Date(*,*)"/>
+			<method template="public i值_I(*,*)"/>
+			<method template="public i值_ID(*,*,*)"/>
+			<method template="public i值_L(*,*)"/>
+			<method template="public i值_s(*,*)"/>
+        </class>
+		<class template="interface org.hzs.sql.操作_">
+			<method template="public g关闭()"/>
+			<method template="public g置参數(*,*)"/>
+			<method template="public g置参數(*,*,*)"/>
+			<method template="public g置参數_B(*,*)"/>
+			<method template="public g置参數_BD(*,*)"/>
+			<method template="public g置参數_I(*,*)"/>
+			<method template="public g置参數_ID(*,*)"/>
+			<method template="public g置参數_L(*,*)"/>
+			<method template="public g置参數_byteArray(*,*)"/>
+			<method template="public g置参數_s(*,*)"/>
+			<method template="public g置空参數(*,*)"/>
+			<method template="public g置空参數(*,*,*)"/>
+			<method template="public p关闭()"/>
+			<method template="public g置密钥_byteArray(*)"/>
+        </class>
+		<class template="interface org.hzs.sql.操作">
+			<method template="public g关闭()"/>
+            <method template="public g执行缓冲()"/>
+            <method template="public g清空缓冲()"/>
+			<method template="public g立即执行()"/>
+			<method template="public g缓冲()"/>
+			<method template="public g置参數(*,*)"/>
+			<method template="public g置参數(*,*,*)"/>
+			<method template="public g置参數_B(*,*)"/>
+			<method template="public g置参數_BD(*,*)"/>
+			<method template="public g置参數_I(*,*)"/>
+			<method template="public g置参數_ID(*,*)"/>
+			<method template="public g置参數_L(*,*)"/>
+			<method template="public g置参數_byteArray(*,*)"/>
+			<method template="public g置参數_s(*,*)"/>
+			<method template="public g置空参數(*,*)"/>
+			<method template="public g置空参數(*,*,*)"/>
+			<method template="public p关闭()"/>
+			<method template="public g置密钥_byteArray(*)"/>
+			<method template="public g前筆()"/>
+			<method template="public g尾部()"/>
+			<method template="public g後筆()"/>
+			<method template="public g末筆()"/>
+			<method template="public g首筆()"/>
+			<method template="public g首部()"/>
+			<method template="public i值_byteArray(*,*)"/>
+			<method template="public i值(*,*)"/>
+			<method template="public i值_B(*,*)"/>
+			<method template="public i值_BD(*,*)"/>
+			<method template="public i值_Date(*,*)"/>
+			<method template="public i值_I(*,*)"/>
+			<method template="public i值_ID(*,*,*)"/>
+			<method template="public i值_L(*,*)"/>
+			<method template="public i值_s(*,*)"/>
+        </class>
+    </keep-names>
+</config>
