@@ -22,15 +22,6 @@ public class 助记文本 {
 
     private static final int[] table = new int[27];
 
-    public static void g初始化() {
-        if (i汉字助记符_MAP.size() > 0) {
-            return;
-        }
-        i特殊字符_cArray = org.hzs.vu4ji4fu2.特殊字符.i构建特殊字符_cArray();
-        g构建助记符();
-        g构建英文单词();
-    }
-
     private static void g构建助记符() {
         i汉字助记符_MAP.clear();
         for (int i = 0; i < 27; ++i) {
@@ -52,6 +43,12 @@ public class 助记文本 {
     }
 
     public static char i助记符_c(char ci字符_c) {
+        if (i汉字助记符_MAP.size() == 0) {
+            i特殊字符_cArray = org.hzs.vu4ji4fu2.特殊字符.i构建特殊字符_cArray();
+            g构建助记符();
+            g构建英文单词();
+        }
+
 //      if (ci字符_c >= 0xff01) {
 //         ci字符_c -= 0xff01 - 0x21;
 //      }

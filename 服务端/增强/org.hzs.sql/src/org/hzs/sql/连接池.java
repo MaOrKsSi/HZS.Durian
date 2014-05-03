@@ -1,5 +1,8 @@
 package org.hzs.sql;
 
+import java.io.UnsupportedEncodingException;
+import java.net.SocketException;
+import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -19,18 +22,10 @@ public final class 连接池 {
         short i服务器号_i;//由数据库竞争得到
         连接 d保留连接 = null;//用于查询
         byte[] i密钥_byteArray = null;//密钥为空，则采用默认密钥为 "".getBytes()
-        清理终端号 d清理终端号 = null;
     }
     private i i = new i();
 
-    public 清理终端号 d清理终端号() {
-        if (i.d清理终端号 == null) {
-            i.d清理终端号 = new 清理终端号();
-        }
-        return i.d清理终端号;
-    }
-
-    public 连接池(final byte ci集群号_byte, final String ci连接文本_s, final String ci用户_s, final String ci口令_s, byte[] ci密钥_byteArray) throws java.sql.SQLException, CloneNotSupportedException, java.net.SocketException {
+    public 连接池(final byte ci集群号_byte, final String ci连接文本_s, final String ci用户_s, final String ci口令_s, byte[] ci密钥_byteArray) throws java.sql.SQLException, CloneNotSupportedException, java.net.SocketException, UnsupportedEncodingException {
         i.i密钥_byteArray = ci密钥_byteArray;
         i.i集群号_byte = ci集群号_byte;
         i.i连接文本_s = ci连接文本_s;
@@ -39,10 +34,26 @@ public final class 连接池 {
         i.d连接池 = new java.util.TreeMap<Integer, 连接class>();
         i.d保留连接 = jd连接(0, null);
         ((连接class) i.d保留连接).d连接.setAutoCommit(true);
+        //清理终端号
+        (new java.lang.Thread() {
+
+            @Override
+            public void run() {
+                try {
+                    try {
+                        java.lang.Thread.sleep(50_000);
+                    } catch (InterruptedException ex) {
+                    }
+                    jd连接(2, null);
+                } catch (CloneNotSupportedException | SQLException | SocketException | UnsupportedEncodingException ex) {
+                    Logger.getLogger(连接池.class.getName()).log(Level.SEVERE, null, ex);
+                } finally {
+                }
+            }
+        }).start();
     }
 
-    private short i服务器号() throws java.sql.SQLException, CloneNotSupportedException, java.net.SocketException {
-        final String ji过程_s = "i服务器号(.";
+    private short i服务器号() throws java.sql.SQLException, CloneNotSupportedException, java.net.SocketException, UnsupportedEncodingException {
         // <editor-fold defaultstate="collapsed" desc="自用">
         class 自用 implements Cloneable {
 
@@ -80,10 +91,10 @@ public final class 连接池 {
         }
         自用 ji自用 = null;
         try {
-            ji自用 = (自用) org.hzs.常用.d对象池.get(i类_s + ji过程_s + "自用");
+            ji自用 = (自用) org.hzs.常用.d对象池.get(自用.class.getName());
             if (ji自用 == null) {
                 ji自用 = new 自用();
-                org.hzs.常用.d对象池.put(i类_s + ji过程_s + "自用", ji自用);
+                org.hzs.常用.d对象池.put(自用.class.getName(), ji自用);
             }
             ji自用 = ji自用.d副本();
             //
@@ -101,20 +112,27 @@ public final class 连接池 {
                 }
             }
             //
-            ji自用.d操作 = ji自用.d连接.prepareStatement("SELECT server FROM public._server WHERE ip=?;", java.sql.ResultSet.TYPE_SCROLL_INSENSITIVE, java.sql.ResultSet.CONCUR_READ_ONLY, java.sql.ResultSet.HOLD_CURSORS_OVER_COMMIT);
-            ji自用.d操作.setString(1, ji自用.i内网IP_s);
+            ji自用.d操作 = ji自用.d连接.prepareStatement(""
+                    + "SELECT"
+                    + "   server "
+                    + "FROM public._server "
+                    + "WHERE"
+                    + "   encrypt(?, ?, 'bf')=ip;", java.sql.ResultSet.TYPE_SCROLL_INSENSITIVE, java.sql.ResultSet.CONCUR_READ_ONLY, java.sql.ResultSet.HOLD_CURSORS_OVER_COMMIT);
+            ji自用.d操作.setBytes(1, ji自用.i内网IP_s.getBytes("UTF-8"));
+            ji自用.d操作.setBytes(2, i.i密钥_byteArray);
             ji自用.d视图 = ji自用.d操作.executeQuery();
             if (ji自用.d视图.first()) {
                 ji自用.i服务号_i = ji自用.d视图.getShort("server");
             } else {
-                ji自用.d操作 = ji自用.d连接.prepareStatement("INSERT INTO public._server (server, ip) VALUES (?, ?);", java.sql.ResultSet.TYPE_SCROLL_INSENSITIVE, java.sql.ResultSet.CONCUR_READ_ONLY, java.sql.ResultSet.HOLD_CURSORS_OVER_COMMIT);
+                ji自用.d操作 = ji自用.d连接.prepareStatement("INSERT INTO public._server (server, ip) VALUES (?, encrypt(?, ?, 'bf'));", java.sql.ResultSet.TYPE_SCROLL_INSENSITIVE, java.sql.ResultSet.CONCUR_READ_ONLY, java.sql.ResultSet.HOLD_CURSORS_OVER_COMMIT);
                 do {
                     ji自用.d未确定数 = new java.util.Random();
                     ji自用.i服务号_i = i.i集群号_byte;
                     ji自用.i服务号_i = (ji自用.i服务号_i << 12) | ji自用.d未确定数.nextInt(0xFFF);
                     //
                     ji自用.d操作.setShort(1, (short) ji自用.i服务号_i);
-                    ji自用.d操作.setString(2, ji自用.i内网IP_s);
+                    ji自用.d操作.setBytes(2, ji自用.i内网IP_s.getBytes("UTF-8"));
+                    ji自用.d操作.setBytes(3, i.i密钥_byteArray);
                     try {
                         ji自用.d操作.execute();
                         break;
@@ -137,7 +155,7 @@ public final class 连接池 {
         }
     }
 
-    public 连接 d连接() throws java.sql.SQLException, CloneNotSupportedException, java.net.SocketException {
+    public 连接 d连接() throws java.sql.SQLException, CloneNotSupportedException, java.net.SocketException, UnsupportedEncodingException {
         return jd连接(0, null);
     }
 
@@ -145,7 +163,7 @@ public final class 连接池 {
         return i.d保留连接.d操作(ciSQL_s, ci_error);
     }
 
-    private synchronized 连接 jd连接(final int ci操作_i, final 连接池.连接class cd连接) throws java.sql.SQLException, CloneNotSupportedException, java.net.SocketException {
+    private synchronized 连接 jd连接(final int ci操作_i, final 连接池.连接class cd连接) throws java.sql.SQLException, CloneNotSupportedException, java.net.SocketException, UnsupportedEncodingException {
         switch (ci操作_i) {
             case 0://取连接池
                 if (i.d连接池.size() == 0) {
@@ -199,7 +217,7 @@ public final class 连接池 {
         protected int i终端_i;
         private java.sql.Connection d连接 = null;
 
-        public 连接class(final int ci终端_i) throws java.sql.SQLException, CloneNotSupportedException, java.net.SocketException {
+        public 连接class(final int ci终端_i) throws java.sql.SQLException, CloneNotSupportedException, java.net.SocketException, UnsupportedEncodingException {
             if (i.d连接池.size() == 0) {//连接池内不存在连接时，说明未取得服务或服务出现问题而需重新获取
                 i.i服务器号_i = i服务器号();
             }
@@ -368,7 +386,7 @@ public final class 连接池 {
         }
 
         @Override
-        public void g关闭() throws java.sql.SQLException, CloneNotSupportedException, java.net.SocketException {
+        public void g关闭() throws java.sql.SQLException, CloneNotSupportedException, java.net.SocketException, UnsupportedEncodingException {
             jd连接(1, this);
         }
 
@@ -861,19 +879,6 @@ public final class 连接池 {
             public void g尾部() throws java.sql.SQLException {
                 jg开启视图();
                 d视图.afterLast();
-            }
-        }
-    }
-
-    public class 清理终端号 implements Runnable {
-
-        @Override
-        public void run() {
-            try {
-                jd连接(2, null);
-            } catch (java.sql.SQLException | CloneNotSupportedException | java.net.SocketException ex) {
-                Logger.getLogger(连接池.class.getName()).log(Level.SEVERE, null, ex);
-            } finally {
             }
         }
     }

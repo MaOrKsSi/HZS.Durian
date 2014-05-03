@@ -1,12 +1,14 @@
 package org.hzs.sql;
 
+import java.io.UnsupportedEncodingException;
+
 public interface 连接 {
 
     public org.hzs.lang.ID i_ID(final String ci子數據表_s, String ci母數據表_s) throws java.sql.SQLException, CloneNotSupportedException;
 
     public void g废弃新记录(final String ci數據表_s) throws java.sql.SQLException;
 
-    public void g关闭() throws java.sql.SQLException, CloneNotSupportedException, java.net.SocketException;
+    public void g关闭() throws java.sql.SQLException, CloneNotSupportedException, java.net.SocketException, UnsupportedEncodingException;
 
     public void g递交事务() throws java.sql.SQLException;
 

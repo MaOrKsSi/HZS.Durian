@@ -1,15 +1,15 @@
 
+import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.net.SocketException;
 import java.sql.SQLException;
 import org.hzs.logging.error;
 
-public class 混淆入口 {
+public class Main {
 
-    public static void main(String[] args) throws SQLException, error, CloneNotSupportedException, SocketException {
+    public static void main(String[] args) throws SQLException, error, CloneNotSupportedException, SocketException, UnsupportedEncodingException {
         org.hzs.sql.连接池 d7 = null;
         d7 = new org.hzs.sql.连接池("".getBytes()[0], "", "", "", null);
-        d7.d清理终端号();
         d7.d视图(null, null);
         org.hzs.sql.连接 d8 = d7.d连接();
         org.hzs.sql.写操作 d9 = d8.d操作("", null);
