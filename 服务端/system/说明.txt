@@ -1,3 +1,4 @@
-postgresql-9.3-1101.jdbc41.jar	数据库驱动
+postgresql-9.3-1100.jdbc41.jar	数据库驱动
+voltdbclient-4.0.jar		数据库终端，号称最快的内存数据库
 QRCode.jar			二维码
 mail.jar			郵件处理
