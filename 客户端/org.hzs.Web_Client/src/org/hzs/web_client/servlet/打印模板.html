@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+   <head>
+      <META HTTP-EQUIV='Content-Type' CONTENT='text/html; charset=UTF-8'>
+   </head>
+   <body>
+      <object id='LODOP_OB' classid='clsid:2105C259-1E0C-4534-8141-A753534CB4CA' width=0 height=0>
+         <embed id='LODOP_EM' type='application/x-print-lodop' width=0 height=0 />
+      </object>
+      <script>
+         var b = function(LODOP) {
+            LODOP.PRINT_INITA(0, 0, 1123, 794, "zzkj");
+            LODOP.SET_SHOW_MODE('LANDSCAPE_DEFROTATED', true);
+            LODOP.SET_PRINT_PAGESIZE(2, 2100, 2970, "");
+            LODOP.PREVIEW();
+         };
+
+         var a = function() {
+            var LODOP = null;
+            try {
+               LODOP = document.getElementById('LODOP_OB');
+               if (LODOP === null || typeof (LODOP.VERSION) === "undefined") {
+                  LODOP = document.getElementById('LODOP_EM');
+                  if (LODOP === null || typeof (LODOP.VERSION) === "undefined") {
+                     document.write("<a href='http://115.28.52.17/'>进入主页下载LODOP插件并安装</a>");
+                     return;
+                  }
+               }
+               //=====如下空白位置适合调用统一功能:=====	     
+
+
+               //=======================================
+               b(LODOP);
+               window.opener = null;
+               window.open('', '_parent', '');
+               window.close();
+            } catch (err) {
+            }
+         };
+
+         a();
+      </script>
+   </body>
+</html>
