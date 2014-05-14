@@ -77,7 +77,7 @@ public class 业务 extends __ implements com.sun.net.httpserver.HttpHandler {
             // </editor-fold>
             he.sendResponseHeaders(200, 0);
             ji自用.i入站网址_s = he.getRemoteAddress().getHostName();
-            if (ji自用.i入站网址_s != null && !ji自用.i入站网址_s.equals("localhost")) {
+            if (ji自用.i入站网址_s != null && !ji自用.i入站网址_s.equals("localhost") && !ji自用.i入站网址_s.equals("127.0.0.1")) {
                 return;
             }
             ji自用.i浏览器_s = he.getRequestHeaders().get("User-Agent").get(0); //得到浏览器等相关信息
