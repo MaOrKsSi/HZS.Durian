@@ -17,7 +17,7 @@ public class 树节点 {
         int ji_i;
         try {
             ji_JSON = org.hzs.json.JSONObject.d副本();
-            if (i下级个數_i < d下级.length) {
+            if (d下级 != null && i下级个數_i < d下级.length) {
                 i下级个數_i = d下级.length;
             }
             //id

@@ -2,6 +2,7 @@
 -outjars .\org.hzs.助记文本.jar
 
 -libraryjars '..\..\..\system\rt.jar'
+-libraryjars '..\..\必需\org.hzs.logging.jar'
 
 -keepattributes Exceptions
 

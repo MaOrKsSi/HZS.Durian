@@ -11,3 +11,23 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 /服务端/必需/org.hzs.json/nbproject/private/
+/服务端/开源/增强/org.hzs.mongodb/nbproject/private/
+/服务端/开源/增强/org.hzs.助记文本/nbproject/private/
+/服务端/开源/增强/org.hzs.助记文本/dist/
+/服务端/开源/增强/org.hzs.助记文本/build/
+/服务端/开源/增强/org.hzs.extjs/nbproject/private/
+/服务端/开源/org.hzs.server/nbproject/private/
+/服务端/开源/必需/org.hzs.json/nbproject/private/
+/服务端/开源/必需/org.hzs.logging/nbproject/private/
+/服务端/开源/增强/org.hzs.jsoup/nbproject/private/
+/服务端/开源/增强/org.hzs.lang/nbproject/private/
+/客户端/org.hzs.Web_Client/nbproject/private/
+/服务端/开源/增强/org.hzs.公式/nbproject/private/
+/服务端/开源/增强/org.hzs.图像/nbproject/private/
+/服务端/开源/增强/org.hzs.金额/nbproject/private/
+/服务端/开源/增强/org.hzs.sql/nbproject/private/
+/服务端/开源/必需/org.hzs.编码/nbproject/private/
+/服务端/开源/必需/org.hzs.安全/nbproject/private/
+/服务端/开源/增强/org.hzs.图形验证码/nbproject/private/
+/服务端/开源/必需/org.hzs.压缩解压/nbproject/private/
+/服务端/开源/必需/org.hzs/nbproject/private/

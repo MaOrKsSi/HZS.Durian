@@ -2,7 +2,7 @@ package org.hzs;
 
 public interface Close {
 
-    default void close() {
+    public default void close() {
         Object o = null;
         java.lang.reflect.Field[] fieldArray = null;
         java.lang.reflect.Method method = null;
@@ -94,14 +94,28 @@ public interface Close {
                             }
                             break;
                         default:
-                            try {
-                                method = o.getClass().getMethod("close");
-                                if (method == null) {
-                                    break;
+                            if (type_s.endsWith("[]")) {
+                                for (Object o1 : ((Object[]) o)) {
+                                    try {
+                                        method = o1.getClass().getMethod("close");
+                                        if (method == null) {
+                                            break;
+                                        }
+                                        method.invoke(o1.getClass().newInstance());
+                                    } catch (NoSuchMethodException | SecurityException | InstantiationException | java.lang.reflect.InvocationTargetException ex) {
+//                                        Logger.getLogger(Close.class.getName()).log(Level.SEVERE, null, ex);
+                                    }
                                 }
-                                method.invoke(o.getClass().newInstance());
-                            } catch (NoSuchMethodException | SecurityException | InstantiationException | java.lang.reflect.InvocationTargetException ex) {
+                            } else {
+                                try {
+                                    method = o.getClass().getMethod("close");
+                                    if (method == null) {
+                                        break;
+                                    }
+                                    method.invoke(o.getClass().newInstance());
+                                } catch (NoSuchMethodException | SecurityException | InstantiationException | java.lang.reflect.InvocationTargetException ex) {
 //                                Logger.getLogger(Close.class.getName()).log(Level.SEVERE, null, ex);
+                                }
                             }
                     }
                     field.set(this, null);

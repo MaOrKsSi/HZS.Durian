@@ -113,6 +113,12 @@ public class 助记文本 {
     }
 
     public static String i助记文本_s(final String ci_s) {
+        if (i汉字助记符_MAP.size() == 0) {
+            i特殊字符_cArray = org.hzs.vu4ji4fu2.特殊字符.i构建特殊字符_cArray();
+            g构建助记符();
+            g构建英文单词();
+        }
+
         if (ci_s == null) {
             return null;
         }
