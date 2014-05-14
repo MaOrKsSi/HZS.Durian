@@ -1,7 +1,6 @@
 /**
- * 每个客户端只允许串行访问、
- * 保留线程：5<BR>
- * 8080：第一层负载对外端口 8079：负载均衡端口 8081：开始业务端口 8080 - 偏移 - 1：内部业务端口 8080 + 偏移 + 1：对外业务端口 线程1负责：1、对客户的请求作出响应；2、将请求交给压力最小的服务器处理。为客户提供服务。直接对外<BR>
+ * 每个客户端只允许串行访问，多个客户端之间可并行访问，但超出连接池限制则进入等待状态；保留线程：5<BR>
+ * 8080：第一层负载对外端口 8079：负载均衡端口 8081：开始业务端口 8080 - 偏移 - 1：内部业务端口 8080 + 偏移 + 1：对外业务端口 线程1负责：1、对客户的请求作出响应；2、将请求交给权重最小的服务器处理。为客户提供服务。直接对外<BR>
  * 线程2负责对其他节点或本节点的请求，提供访问权限：session1。也就是对第一层负载提供rsa公钥，客户可持公钥到本服务器申请服务。与第一层的线程3对话<BR>
  * 线程3负责接收其他服务器传过来的请求，并将处理结果传回给对方。与线程1对话 功能：负责将客户端的接引平均分配到各服务器<BR>
  * 线程负责响应客户请求，向指定服务器递交客户端公钥并取得服务器公钥，并转交给客户：公钥、IP。与第二层负载的线程2对话。
@@ -89,30 +88,21 @@ public class 均衡 extends __ {
             @Override
             public void run() {
                 // <editor-fold defaultstate="collapsed" desc="自用">
-                class 自用 implements Cloneable {
+                class 自用 implements Cloneable, org.hzs.Close {
 
                     byte[] i缓冲_byteArray = new byte[1024], session_byteArray = null, i_byteArray = null;
                     int sessionid_i;
                     org.hzs.server.Session session = null;
                     org.hzs.json.JSONObject i_JSON = null;
-                    java.util.Calendar i当前时间 = null;
 
                     自用 d副本() throws CloneNotSupportedException {
                         自用 jd = (自用) super.clone();
                         jd.i缓冲_byteArray = jd.i缓冲_byteArray.clone();
                         return jd;
                     }
-
-                    void close() {
-                        i当前时间 = null;
-                        i缓冲_byteArray = null;
-                        session_byteArray = null;
-                        i_byteArray = null;
-                        session = null;
-                    }
                 }// </editor-fold>
                 // <editor-fold defaultstate="collapsed" desc="会晤">
-                class 会晤 implements Cloneable {
+                class 会晤 implements Cloneable, org.hzs.Close {
 
                     byte[] i_byteArray = null;
                     java.io.InputStream d读入 = null;
@@ -122,25 +112,6 @@ public class 均衡 extends __ {
 
                     会晤 d副本() throws CloneNotSupportedException {
                         return (会晤) super.clone();
-                    }
-
-                    void close() {
-                        address = null;
-                        i_byteArray = null;
-                        if (d读入 != null) {
-                            try {
-                                d读入.close();
-                            } catch (IOException ex) {
-                            }
-                            d读入 = null;
-                        }
-                        if (d写出 != null) {
-                            try {
-                                d写出.close();
-                            } catch (IOException ex) {
-                            }
-                            d写出 = null;
-                        }
                     }
                 }// </editor-fold>
                 自用 ji自用 = null;
@@ -162,29 +133,19 @@ public class 均衡 extends __ {
                     ji会晤 = ji会晤.d副本();
                     ji_error = org.hzs.logging.error.d副本();
                     // </editor-fold>
-                    d通信链.setSoTimeout(3_000);//设置最大连接时长为3000毫秒分钟，防止长连接攻击
-                    //判断软件使用权是否到期
-                    ji自用.i当前时间 = java.util.Calendar.getInstance();
-                    if (org.hzs.server.Property.i软件到期时间_L != null && org.hzs.server.Property.i软件到期时间_L.compareTo(ji自用.i当前时间.getTimeInMillis() - ji自用.i当前时间.getTimeZone().getRawOffset()) < 0) {
-                        d通信链.shutdownInput();
-                        ji会晤.d写出 = d通信链.getOutputStream();
-                        ji会晤.d写出.write("{success:false,_:'软件使用权到期，请续费！'}".getBytes("UTF-8"));
-                        ji未捕获错误_b = false;
-                        return;
-                    }
+                    d通信链.setSoTimeout(3_000);//设置最大连接时长为3000毫秒，防止长连接攻击
                     ji会晤.d读入 = d通信链.getInputStream();
                     //获取外连接数据
-                    ji自用.i缓冲_byteArray = new byte[1024];
-                    ji会晤.i_byteArray = new byte[0];
                     int ji_i;
-                    while ((ji_i = ji会晤.d读入.read(ji自用.i缓冲_byteArray)) > 0) {
-                        ji会晤.i_byteArray = java.util.Arrays.copyOf(ji会晤.i_byteArray, ji会晤.i_byteArray.length + ji_i);
-                        System.arraycopy(ji自用.i缓冲_byteArray, 0, ji会晤.i_byteArray, ji会晤.i_byteArray.length - ji_i, ji_i);
-                    }
-                    if (ji会晤.i_byteArray.length <= 0) {
+                    ji自用.i缓冲_byteArray = new byte[1024];
+                    ji会晤.i_byteArray = new byte[1024 * 1024];//用户最多只能传送3M的数据
+                    ji_i = ji会晤.d读入.read(ji会晤.i_byteArray);
+                    d通信链.shutdownInput();
+                    if (ji_i <= 4) {
                         ji未捕获错误_b = false;
                         return;
                     }
+                    ji会晤.i_byteArray = java.util.Arrays.copyOf(ji会晤.i_byteArray, ji_i);
                     {//解析出session并传递给业务处理模块
                         //***取会晤号
                         ji自用.i_byteArray = new byte[4];
@@ -195,9 +156,9 @@ public class 均衡 extends __ {
                         //处理内部session
                         ji自用.session = session_集合.get(ji自用.sessionid_i);
                         if (ji自用.session.i正在服务_b) {
+                            ji未捕获错误_b = false;
                             return;
                         }
-                        ji自用.session.i正在服务_b = true;
                         ji会晤.i_byteArray = org.hzs.安全.AES.i解密_byteArray(ji会晤.i_byteArray, ji自用.session.AES_Key);
                         //取得session，
                         ji自用.i_byteArray = d业务.getSession(ji自用.sessionid_i).toString(ji_error).getBytes("UTF-8");//取得业务的session
@@ -239,7 +200,7 @@ public class 均衡 extends __ {
                             continue;
                         }
                         ////如果出现转交，则访问频率增加，否则不增加，以防非黑客捣乱带来影响。
-                        ji自用.session.i最近使用时间_l = ji自用.i当前时间.getTimeInMillis();
+                        ji自用.session.i最近使用时间_l = java.util.Calendar.getInstance().getTimeInMillis();
                         ji自用.session.i访问频率_i++;
                         ////将客户请求转交
                         ji会晤.d写出 = ji会晤.d通信链.getOutputStream();
@@ -353,7 +314,7 @@ public class 均衡 extends __ {
             @Override
             public void run() {
                 // <editor-fold defaultstate="collapsed" desc="自用">
-                class 自用 implements Cloneable {
+                class 自用 implements Cloneable, org.hzs.Close {
 
                     byte[] i缓冲_byteArray = new byte[1024], session = null;
                     org.hzs.json.JSONObject i_JSON = null;
@@ -363,14 +324,9 @@ public class 均衡 extends __ {
                         jd.i缓冲_byteArray = jd.i缓冲_byteArray.clone();
                         return jd;
                     }
-
-                    void close() {
-                        i缓冲_byteArray = null;
-                        session = null;
-                    }
                 }// </editor-fold>
                 // <editor-fold defaultstate="collapsed" desc="会晤">
-                class 会晤 implements Cloneable {
+                class 会晤 implements Cloneable, org.hzs.Close {
 
                     byte[] i_byteArray = null;
                     java.io.InputStream d读入 = null;
@@ -380,25 +336,6 @@ public class 均衡 extends __ {
 
                     会晤 d副本() throws CloneNotSupportedException {
                         return (会晤) super.clone();
-                    }
-
-                    void close() {
-                        address = null;
-                        i_byteArray = null;
-                        if (d读入 != null) {
-                            try {
-                                d读入.close();
-                            } catch (IOException ex) {
-                            }
-                            d读入 = null;
-                        }
-                        if (d写出 != null) {
-                            try {
-                                d写出.close();
-                            } catch (IOException ex) {
-                            }
-                            d写出 = null;
-                        }
                     }
                 }// </editor-fold>
                 自用 ji自用 = null;
@@ -528,23 +465,16 @@ public class 均衡 extends __ {
             @Override
             public void run() {
                 // <editor-fold defaultstate="collapsed" desc="自用">
-                class 自用 implements Cloneable {
+                class 自用 implements Cloneable, org.hzs.Close {
 
                     byte[] i缓冲_byteArray = new byte[1024];
                     String[] i键_sArray = null;
                     long i最小客户量_l, i客户量_l;
-                    java.util.Calendar i当前时间 = null;
 
                     自用 d副本() throws CloneNotSupportedException {
                         自用 jd = (自用) super.clone();
                         jd.i缓冲_byteArray = jd.i缓冲_byteArray.clone();
                         return jd;
-                    }
-
-                    void close() {
-                        i当前时间 = null;
-                        i缓冲_byteArray = null;
-                        i键_sArray = null;
                     }
                 }// </editor-fold>
                 // <editor-fold defaultstate="collapsed" desc="会晤">
@@ -596,14 +526,6 @@ public class 均衡 extends __ {
                     ji会晤 = ji会晤.d副本();
                     // </editor-fold>
                     d通信链.setSoTimeout(3000);//设置最大连接时长为3″，防止长连接攻击
-                    //判断软件使用权是否到期
-                    ji自用.i当前时间 = java.util.Calendar.getInstance();
-                    if (org.hzs.server.Property.i软件到期时间_L != null && org.hzs.server.Property.i软件到期时间_L.compareTo(ji自用.i当前时间.getTimeInMillis() - ji自用.i当前时间.getTimeZone().getRawOffset()) < 0) {
-                        d通信链.shutdownInput();
-                        ji会晤.d写出 = d通信链.getOutputStream();
-                        ji会晤.d写出.write("{success:false,_:'软件使用权到期，请续费！'}".getBytes("UTF-8"));
-                        return;
-                    }
                     //
                     ji会晤.d读入 = d通信链.getInputStream();
                     //接收客户端密钥或递出服务器公钥

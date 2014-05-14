@@ -5,6 +5,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.hzs.json.JSONObject;
 
 public class NewClass {
 
@@ -18,11 +19,23 @@ public class NewClass {
             org.hzs.server.Property.i中心端口_i = 8080;
             org.hzs.server.Property.i集群号_byte = 0;
             //
-            org.hzs.server.业务.Session.session = null;
-            org.hzs.server.业务.Session d1 = null;
-            d1.i指令_ArrayJSON = null;
-            d1.i指令团_ArrayJSON = null;
-            org.hzs.server.业务.__ d2 = null;
+            org.hzs.server.业务.__ d2 = new org.hzs.server.业务.__() {
+
+                @Override
+                public byte[] g处理请求(String session_s, byte[] ci客户数据_byteArray) {
+                    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                }
+
+                @Override
+                public JSONObject getSession(int sessionid_i) {
+                    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                }
+
+                @Override
+                public void removeSession(int sessionid_i) {
+                    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                }
+            };
             org.hzs.server.业务.__.i指令_JSON = null;
             d2.getSession(0);
             d2.g处理请求(null, null);
