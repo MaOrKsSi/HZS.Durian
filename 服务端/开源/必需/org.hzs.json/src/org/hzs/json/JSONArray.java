@@ -445,7 +445,9 @@ public final class JSONArray extends java.util.ArrayList implements Cloneable, j
                 sb.append(",");
             }
             value = this.get(i);
-            if (value instanceof java.math.BigInteger || value instanceof java.math.BigDecimal || value instanceof Boolean) {
+            if (value == null) {
+                sb.append("null");
+            } else if (value instanceof java.math.BigInteger || value instanceof java.math.BigDecimal || value instanceof Boolean) {
                 sb.append(value.toString());
             } else if (value instanceof JSONObject) {
                 sb.append(((JSONObject) value).toString(ci_error));

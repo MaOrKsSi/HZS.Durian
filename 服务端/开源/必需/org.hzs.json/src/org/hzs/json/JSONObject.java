@@ -662,6 +662,9 @@ public class JSONObject extends java.util.TreeMap<String, Object> implements Clo
      * @since
      */
     protected static String valueToString(final Object value, final org.hzs.logging.error ci_error) throws org.hzs.logging.error {
+        if (value == null) {
+            return "null";
+        }
         if (value instanceof java.math.BigInteger || value instanceof java.math.BigDecimal || value instanceof Boolean) {
             return value.toString();
         }
@@ -702,6 +705,7 @@ public class JSONObject extends java.util.TreeMap<String, Object> implements Clo
             throw ci_error;
         }
         java.util.Iterator keys = null;
+        Object value = null;
         StringBuilder sb = null;
         try {
             keys = keys();
@@ -712,10 +716,14 @@ public class JSONObject extends java.util.TreeMap<String, Object> implements Clo
                     sb.append(',');
                 }
                 Object o = keys.next();
-//            quote(o.toString());
+                value = super.get(o);
                 sb.append(quote(o.toString()));
                 sb.append(':');
-                sb.append(valueToString(super.get(o), ci_error));
+                if (value == null) {
+                    sb.append("null");
+                } else {
+                    sb.append(valueToString(super.get(o), ci_error));
+                }
             }
             sb.append('}');
             return sb.toString();
