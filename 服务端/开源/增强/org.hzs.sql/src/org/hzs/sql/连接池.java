@@ -366,8 +366,7 @@ public final class 连接池 {
             }
         }
 
-        @Override
-        public void g废弃新记录() throws java.sql.SQLException {
+        private void jg废弃新记录() throws java.sql.SQLException {
             java.sql.PreparedStatement jd写操作 = null;
             try {
                 //删除新增记录
@@ -389,6 +388,8 @@ public final class 连接池 {
 
         @Override
         public void g关闭() throws java.sql.SQLException, CloneNotSupportedException, java.net.SocketException, UnsupportedEncodingException {
+            this.jg废弃新记录();
+            this.jg回滚事务();
             jd连接(1, this);
         }
 
@@ -397,8 +398,7 @@ public final class 连接池 {
             d连接.commit();
         }
 
-        @Override
-        public void g回滚事务() throws java.sql.SQLException {
+        private void jg回滚事务() throws java.sql.SQLException {
             d连接.rollback();
         }
 

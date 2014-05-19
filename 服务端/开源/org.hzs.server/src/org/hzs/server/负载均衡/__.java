@@ -36,7 +36,6 @@ public abstract class __ {
     }
 
     private static void init1(final org.hzs.json.JSONArray ci_ArrayJSON) throws SocketException {
-
         java.util.Enumeration<java.net.NetworkInterface> mEnumeration = null;
         try {
             mEnumeration = java.net.NetworkInterface.getNetworkInterfaces();

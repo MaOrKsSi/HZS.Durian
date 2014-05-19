@@ -1,6 +1,5 @@
 package org.hzs.编码;
 
-@Deprecated
 public final class Base64 {
 
     private static final byte[] encodingTable = {

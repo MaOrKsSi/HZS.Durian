@@ -1,6 +1,7 @@
 /**
  * 每个客户端只允许串行访问，多个客户端之间可并行访问，但超出连接池限制则进入等待状态；保留线程：5<BR>
- * 8080：第一层负载对外端口 8079：负载均衡端口 8081：开始业务端口 8080 - 偏移 - 1：内部业务端口 8080 + 偏移 + 1：对外业务端口 线程1负责：1、对客户的请求作出响应；2、将请求交给权重最小的服务器处理。为客户提供服务。直接对外<BR>
+ * 8080：第一层负载对外端口 8079：负载均衡端口 8081：开始业务端口 8080 - 偏移 - 1：内部业务端口 8080 + 偏移 +
+ * 1：对外业务端口 线程1负责：1、对客户的请求作出响应；2、将请求交给权重最小的服务器处理。为客户提供服务。直接对外<BR>
  * 线程2负责对其他节点或本节点的请求，提供访问权限：session1。也就是对第一层负载提供rsa公钥，客户可持公钥到本服务器申请服务。与第一层的线程3对话<BR>
  * 线程3负责接收其他服务器传过来的请求，并将处理结果传回给对方。与线程1对话 功能：负责将客户端的接引平均分配到各服务器<BR>
  * 线程负责响应客户请求，向指定服务器递交客户端公钥并取得服务器公钥，并转交给客户：公钥、IP。与第二层负载的线程2对话。
@@ -133,7 +134,6 @@ public class 均衡 extends __ {
                     ji会晤 = ji会晤.d副本();
                     ji_error = org.hzs.logging.error.d副本();
                     // </editor-fold>
-                    d通信链.setSoTimeout(3_000);//设置最大连接时长为3000毫秒，防止长连接攻击
                     ji会晤.d读入 = d通信链.getInputStream();
                     //获取外连接数据
                     int ji_i;
@@ -159,7 +159,15 @@ public class 均衡 extends __ {
                             ji未捕获错误_b = false;
                             return;
                         }
+                        ji自用.session.i正在服务_b = true;
                         ji会晤.i_byteArray = org.hzs.安全.AES.i解密_byteArray(ji会晤.i_byteArray, ji自用.session.AES_Key);
+                        if (ji会晤.i_byteArray.equals(org.hzs.lang.转换.int_2_byteArray(ji自用.sessionid_i))) {//传送过来的内容为加密session_id时，为退出操作
+                            d业务.removeSession(ji自用.sessionid_i);
+                            session_集合.remove(ji自用.sessionid_i);
+                            ji自用.session.close();
+                            ji未捕获错误_b = false;
+                            return;
+                        }
                         //取得session，
                         ji自用.i_byteArray = d业务.getSession(ji自用.sessionid_i).toString(ji_error).getBytes("UTF-8");//取得业务的session
                         ji自用.i_byteArray = org.hzs.压缩解压.Gzip.i压缩_byteArray(ji自用.i_byteArray);
@@ -265,9 +273,10 @@ public class 均衡 extends __ {
                 }
             }
 
-            Runnable_ d副本(final java.net.Socket cd通信链) throws CloneNotSupportedException {
+            Runnable_ d副本(final java.net.Socket cd通信链) throws CloneNotSupportedException, SocketException {
                 Runnable_ jd = (Runnable_) super.clone();
                 jd.d通信链 = cd通信链;
+                jd.d通信链.setSoTimeout(3_000);//设置最大连接时长为3000毫秒，防止长连接攻击
                 return jd;
             }
         }
@@ -525,8 +534,6 @@ public class 均衡 extends __ {
                     ji自用 = ji自用.d副本();
                     ji会晤 = ji会晤.d副本();
                     // </editor-fold>
-                    d通信链.setSoTimeout(3000);//设置最大连接时长为3″，防止长连接攻击
-                    //
                     ji会晤.d读入 = d通信链.getInputStream();
                     //接收客户端密钥或递出服务器公钥
                     {
@@ -610,9 +617,10 @@ public class 均衡 extends __ {
                 }
             }
 
-            Runnable_ d副本(final java.net.Socket cd通信链) throws CloneNotSupportedException {
+            Runnable_ d副本(final java.net.Socket cd通信链) throws CloneNotSupportedException, SocketException {
                 Runnable_ jd = (Runnable_) super.clone();
                 jd.d通信链 = cd通信链;
+                jd.d通信链.setSoTimeout(3000);//设置最大连接时长为3″，防止长连接攻击
                 return jd;
             }
         }

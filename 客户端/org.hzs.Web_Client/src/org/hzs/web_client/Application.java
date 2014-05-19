@@ -18,8 +18,7 @@ public class Application extends javax.swing.JApplet {
 
     private final static class i {
 
-        static javafx.scene.web.WebEngine webEngine = null;
-        static String i业务模块_s = null, i标题_s = null;
+        static String i标题_s = null;
         static javafx.embed.swing.JFXPanel fxContainer = null;
         static javax.swing.JApplet JApplet = null;
         static org.hzs.json.JSONArray i服务器列表_ArrayJSON = null;//负责第一层集群分配节点的服务器列表
@@ -40,7 +39,6 @@ public class Application extends javax.swing.JApplet {
                     //
                     org.hzs.web_client.Property.i端口偏移_i = ci_JSON.getInt("端口偏移_i", ji_error);
                     i.i标题_s = ci_JSON.getString("标题_s", ji_error);
-                    i.i业务模块_s = ci_JSON.getString("业务模块_s", ji_error);
                     i.i服务器列表_ArrayJSON = ci_JSON.getJSONArray("服务器列表_ArrayJSON", ji_error);
                     org.hzs.web_client.Property.i本地服务端口_i = ci_JSON.getInt("本地服务端口_i", ji_error);
                     i.图标用图片URL = (java.net.URL) ci_JSON.get("图标用图片URL");
@@ -104,16 +102,16 @@ public class Application extends javax.swing.JApplet {
             ji自用.root = new javafx.scene.layout.StackPane();
             ji自用.view = new javafx.scene.web.WebView();
             ji自用.view.setEventDispatcher(new MyEventDispatcher(ji自用.view.getEventDispatcher()));//杜绝系统的默认右键菜单
-            i.webEngine = ji自用.view.getEngine();
+            org.hzs.web_client.Property.webEngine = ji自用.view.getEngine();
             //允许执行JS
-            i.webEngine.setJavaScriptEnabled(true);
+            org.hzs.web_client.Property.webEngine.setJavaScriptEnabled(true);
             //注册插件
-            i.webEngine.getLoadWorker().stateProperty().addListener(new javafx.beans.value.ChangeListener<javafx.concurrent.Worker.State>() {
+            org.hzs.web_client.Property.webEngine.getLoadWorker().stateProperty().addListener(new javafx.beans.value.ChangeListener<javafx.concurrent.Worker.State>() {
                 @Override
                 public void changed(javafx.beans.value.ObservableValue ov, javafx.concurrent.Worker.State oldState, javafx.concurrent.Worker.State newState) {
                     if (newState == javafx.concurrent.Worker.State.SUCCEEDED) {
-                        org.hzs.web_client.Property.frame.setTitle(i.webEngine.getTitle());
-                        netscape.javascript.JSObject window = (netscape.javascript.JSObject) i.webEngine.executeScript("window");
+                        org.hzs.web_client.Property.frame.setTitle(org.hzs.web_client.Property.webEngine.getTitle());
+                        netscape.javascript.JSObject window = (netscape.javascript.JSObject) org.hzs.web_client.Property.webEngine.executeScript("window");
                         window.setMember("applet", org.hzs.web_client.Property.applet);
                     }
                 }
@@ -123,7 +121,7 @@ public class Application extends javax.swing.JApplet {
             ji自用.server = com.sun.net.httpserver.HttpServer.create(new java.net.InetSocketAddress(org.hzs.web_client.Property.i本地服务端口_i + org.hzs.web_client.Property.i端口偏移_i), 0);
             ji自用.server.createContext("/", d业务_HttpHandler);
             ji自用.server.start();
-            i.webEngine.load(d业务_HttpHandler.i本地服务网址_s);
+            org.hzs.web_client.Property.webEngine.load(d业务_HttpHandler.i本地服务网址_s);
             //
             ji自用.root.getChildren().add(ji自用.view);
             ji自用.scene = new javafx.scene.Scene(ji自用.root);
@@ -177,10 +175,8 @@ public class Application extends javax.swing.JApplet {
             MenuItem.addActionListener(new java.awt.event.ActionListener() {
                 @Override
                 public void actionPerformed(java.awt.event.ActionEvent e) {
-                    try {
-                        System.exit(0);
-                    } catch (Exception ex) {
-                    }
+                    org.hzs.web_client.Property.applet.g退出();
+                    System.exit(0);
                 }
             });
             popupMenu.add(MenuItem);
@@ -263,7 +259,7 @@ public class Application extends javax.swing.JApplet {
                             ji1_i = i.i服务器列表_ArrayJSON.size();
                             if (ji1_i == 0) {
                                 d业务_HttpHandler.g失败();
-                                i.webEngine.load(d业务_HttpHandler.i本地服务网址_s);
+                                org.hzs.web_client.Property.webEngine.load(d业务_HttpHandler.i本地服务网址_s);
                                 return;
                             } else {
                                 continue;
@@ -298,8 +294,9 @@ public class Application extends javax.swing.JApplet {
                 ji自用.server.start();
                 //开启业务模块
                 org.hzs.web_client.Property.frame.setExtendedState(javax.swing.JFrame.MAXIMIZED_BOTH);
-                d业务_HttpHandler.g置业务模块(i.i业务模块_s);
-                i.webEngine.load(d业务_HttpHandler.i本地服务网址_s);
+                d业务_HttpHandler.g置业务模块();
+                org.hzs.web_client.Property.webEngine.load(d业务_HttpHandler.i本地服务网址_s);
+                org.hzs.web_client.Property.web = d业务_HttpHandler.i本地服务网址_s;
                 (new 维持连接()).start();
             } catch (NoSuchAlgorithmException ex) {
                 Logger.getLogger(Application.class.getName()).log(Level.SEVERE, null, ex);
@@ -307,12 +304,12 @@ public class Application extends javax.swing.JApplet {
             } catch (org.hzs.logging.error ex) {
                 Logger.getLogger(Application.class.getName()).log(Level.SEVERE, null, ex);
                 d业务_HttpHandler.g失败();
-                i.webEngine.load(d业务_HttpHandler.i本地服务网址_s);
-            } catch (Exception ex) {
+                org.hzs.web_client.Property.webEngine.load(d业务_HttpHandler.i本地服务网址_s);
+            } catch (CloneNotSupportedException | IOException | InvalidKeySpecException ex) {
                 Logger.getLogger(Application.class.getName()).log(Level.SEVERE, null, ex);
                 if (ji自用.i出错_b) {
                     d业务_HttpHandler.g失败();
-                    i.webEngine.load(d业务_HttpHandler.i本地服务网址_s);
+                    org.hzs.web_client.Property.webEngine.load(d业务_HttpHandler.i本地服务网址_s);
                 } else {
                     System.exit(0);
                 }

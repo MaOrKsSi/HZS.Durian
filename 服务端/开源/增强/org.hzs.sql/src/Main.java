@@ -14,8 +14,6 @@ public class Main {
         org.hzs.sql.连接 d8 = d7.d连接();
         org.hzs.sql.写操作 d9 = d8.d操作("", null);
         d8.g关闭();
-        d8.g回滚事务();
-        d8.g废弃新记录();
         d8.g递交事务();
         d8.i_ID("", "");
         d8.i终端_i();

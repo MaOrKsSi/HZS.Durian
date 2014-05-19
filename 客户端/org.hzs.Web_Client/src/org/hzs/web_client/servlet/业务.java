@@ -1,11 +1,19 @@
 package org.hzs.web_client.servlet;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.hzs.logging.error;
 
 public class 业务 extends __ implements com.sun.net.httpserver.HttpHandler {
 
@@ -15,10 +23,64 @@ public class 业务 extends __ implements com.sun.net.httpserver.HttpHandler {
         d资源缓冲.put("/index.html", ("<!DOCTYPE HTML><HTML><HEAD><TITLE>正在登入，请耐心等待......</TITLE><META http-equiv=Content-Type content='text/html; charset=UTF-8'></HEAD><BODY><DIV style='text-align:center;'><BR><BR>正在登入，请耐心等待。。。。。。<BR><BR><IMG src='data:image/gif;base64,R0lGODlhvgAOAOYAAP///8nJyQEaS5OTk4qOknNycyB05zWU6CqC6DiW5g1RwgQtgQg9ihho3hxu0ESe+GOo5Fqx+HDK+G7D+HDK9TOM7ojN74+vzgszbGrF9DOO6AtIqWe99zSO6FOs9xtZkS+I2tTU1BlqzoXL7kGa9hRIc2ar5KWkpLy7vFel66bD1QUoYRdo3il53MTExI/N+2K67Clxs5GbpDuJtgc7ikaZ6onV+JuirRlgqzCJ7YmKiz6X9mfD9i6G65vX9gg7lhJdyKje90RRYpOSkrbj+MrJyZubm4qOkZWUlAEZRoqPkgEUPMnIyAIeVI2RlWFhYQEaSkN9oZKVl5STk8zLy83NzQEWRFVgbQIbTbKysmbC7wMeSbCytD2T6jOB6juO6n3N+E6s4DON7jeV53Cw53eUv0qP5lWZ7a2trkuZ3h92xRNb0TFlmHDC6z+Z5l+l4mWs7YKjy4nA7QQxhwg5fnu9+Vy26UKf0n7A+mqx8AAAAAAAAAAAAAAAAAAAAAAAACH/C05FVFNDQVBFMi4wAwEAAAAh+QQEAAAAACwAAAAAvgAOAAAH/4AAACFGQ0MDiImKi4yNjo+QkZKTlJWWl5iNSEZoVYIAOk8FOkcEpqeoqaqrrK2ur7CxsrO0tbarSk5SUygAJ08XQT4WxMXGFiYQysvMECYjx8fJzc3P0dHT1MvW18bZ2s7Q3cXf2tzjyODb4ujl1NYjbWFcIQUyREFg+vv7GRkJAAMKDCihoMGDEgYqBEihocOHDhcqhEixocSBFSleFJgR4saAHR9+ZOhQy50oKAqoCGIDTMZ/I3l0hPlRZkiaG23OHJlA50uePivivBiU4lCJPrXM+JBypQ2EBjMcmEq1KlUeUKNa3ToVa1atXK16/SpBatiqY7+aPduVbMG1bP/TZoV7Vi6MGSWa+gAzoa/fCRw6dNBAeHDhwR04/F0cGDHhx4cVL2ZsWLBgDZcJS57sNzDkw5gHb+YM2PBn0xpGc/aMOvRl1ZM9Y4aMGvbdvCpfcIjAu7cHBMCDCw/uobdx3r+HK0dQ/Pjx5MuFN3fuO/rw6dQjQLfOPHt17sCxU99uXTzvFDFwq8Dj4YF79yQMyJ9Pf/6O9/jh198v/37+/PHxV59//70XoID2FYjfgQgaQKCCDCL4YIERCjjhe13EgEFKF+RRgxgVhJhDAyQ2wEKJKDbQQwUgghiiiCmeGGMPYrjIYog1VjDiiTKmSCKNNr5444glsiBjjyri+GLujizu6COKLAB545JNPomkijm62CKMVqK44pZCtvDBCijoEEcNLTigpggKtOnmm26KoOacdLIJ550KyEnnng7YieebevI5p59/thmooH0WCiiigyoaJ6NrOmoooyLgQIcVLmRxAxAbMMAADQuEKuqootLg6amogkrqqguYiuqrn7K6qquwnqqqrKXWmiquo9KqKwO85vqrp8GG6iusdGBghRAhAIDCDRg0gYUA1FZr7bXYZqvtttx26+234IYr7rjkZgtFEktc4cInIbjgAhMBxCvvvPTWa++9+Oar77789uvvvwAHbG8RRVDRLACBAAAh+QQEAAAAACwBAAIAvAAKAAAH/4BPF3JkJhAQJiMWi4yNi4aHkZKIio6NkJOSiZaWmJmHm5yXn5qVoo+kkaGnFp6fq6eukW9pIGgycim6uhS9vr++CcLDxMPAx8XJwsfMysnMyM7E0MDS09TB1svYvdpjalEXeSluwjzcGdrm1Onq59jt2u/s6gkZ6PXz0PHW+sz8ysZomPFBXI0xB3hIWMiwoYQMByJKnChRoUOGEClqTHjRYcaNEy12XPgRZESRI0uaRNlRJUiWF11utDOjxAU4NTpwmMCzp88JHDpo6EBUg9GjQnf+7BnUqFCiT6EqXcq0qFOhQ7NOpQoU69WrSblW9XrUqdGtVINCzYr0rFieTf+9WpUKo+aFFF88RNjLt28EDwgCCx4sWK9fvoAJK0Zg+DDixYobO/4LmbBkx4krB758OLNmzn49V9abIkaJOGdSPFjNuvUDEgZiy54te4fr1rBp6zZg+zbu3bp7+16dG3jt4ayLG+eNnPjy482VG+/dJQaGODjFiKlQQTt37TkasGhAXnx58ix6bOfe/Xv48/DRq2/vvfv29+fHw+/Bnn5//PqVFyB/69n3n4AInsdfewba916A+ZFHIIP9ifFghAqy18IHK8RRQwsOhCiiiCIoYOKJKJ4owogslpjiiwqsyGKLML4o44wk1pjijTg64KKOJvKI449ACjkjkTreKAJCDnRscQMQGzAg5ZRS0rDAlVhmiSUNVHZppZZgLsBll2SGCeaYZFJpppZopsnAl2te2WaacMY5J5l1rtkmHRhsIUQgACH5BAQAAAAALAEAAgC8AAoAAAf/gE8qcmQmEIeIiCYjFo2Oj42GiZMQi5CQkpSKjJeYmomWnY+Zn6GikZ+bp46kmqanhm9pIGgycikpCbq7vBS+v8C/vMO9wcHEyMbKyMTKxszDzsfQu9LA1NXWwrpjamwXeSlu0DzaGdi65c7n6OrS7Nju6+gJ8srw1PbG+OTmvGMacJQAV2PMgYMID/KQwLChQwkZEkpMuPBhw4gTJ1a0eDGjRo4OMXpEuBGkyJEHSnI8OVKlRZYHQODAcAFOjQ4dNGjImZPDhJ9Ag07ggBPnzpw7dXbwKRQo0aRGdR5d2lToU6RTjVKt6hSrV6RbuQ4FK7WoUaZiryY9ChUtV6I8/4/KpJniC4K7eBF4iMC3r98IHvIKzrv3b9/AgwcXNnw4sWLGfhE7xrsYsuTJeiE3xny3MuPLeVvMjHPGi4HTqHc8WM269QMSqGPLNqDaNWvYs2fXtn07t27erXH7Tg2893DixV8fR15c+OwGG1bEMdOigXXrPcRU0F6h+/btOa6LH9+gh3ftYtJXCD+eRQP37st3T89dvRj24lnEfy+/vvr57O1HXnncnefdevxdF99+5m2HnoH4kQdff/VB2J517gHxQxNltLCGAiAqIIIDJJZoogMihKjiiiKeaGKKLLI4oosvxigjjTXaqOKMOKKo4449kgjjjy0GOaSN0W1xwz0GP8yxwAI0MCDllFQyQMOTWGaZZZRVTnmllmBC2WWVX4a55ZhVmqkll2haqeaZbbr55pNsolmmmitsIUQgACH5BAQAAAAALAEAAgC8AAoAAAf/gE8qQT4WhhYmEIqLjBAmI4eRkomNjY+Sk5WWkJiZmouXnZGUn46cooakn6GoiKWKrJIjbWFcN0QUubkJvL2+vbrBwhS/xbzDwsbFyMPKv8zJzsDQutLT1MTWCdhad2yDNmAUGdoJPNjk2ufM6dbr0O3S7+zl88jxzvbD+Mr6wjA4SoCTkOGAwYMID/KQwLChQ4IJIxpc+LBhQYkJKVa0iDHjRocXO078yFHkSJIQTR7Q+DEDCBwYVPgAw6GDhps2b+K0yWGCz59AJ9TMSdSm0Z5Bfw7FqVNDh6cdkCZV+tSp0ao5pU4VmtNqUZ5bqRJ1uvOm1qlDr1bVGTWsz5ov/2O+4ICgrt27dj1E2Mu3bwQPeAPX1euXL2DBeAkXNow48eK+hxsPfsxY8mTKfy1fpny4BUwVdbwYGE269OgdD1KrXv2AhOnXp1mvdg3bNGrZs2vbxp1bN+nbvFv7/h08Ne3hwHkfb7BhxQUzLRpIny6dhfQeFcRUyK69e4Uc1BtYp24d+3bu28WAtz4+fHnt6c+nBx9++ngW2MXozy7/e/X61OXXnX7wqQdgfT3Ax9+C/rnX3nX87VeggdMB8UMTZbSwhgIcduihCA6EKOKIDojg4YkfkjiiiSiiCKKKK7boIowxypgijSGyaCOHL+Ko44490vijAs1ZccMGP8yxwDeSTC5JAwNQRiklAzQ0aWWTT04ZZZVXXpmlllt26SWYU4pp5Zdkcmmmk2SGuSabbVJ55QpWCBEIADs='/><BR></DIV></BODY></HTML>").getBytes("UTF-8"));
     }
 
-    public void g置业务模块(final String ci业务模块_s) {
+    /**
+     * 下载所需资源，已下载但未改变的资源不再下载
+     */
+    public void g置业务模块() throws error, MalformedURLException, IOException {
         d资源缓冲.clear();
-        g缓冲资源("base.hz");
-        g缓冲资源(ci业务模块_s + ".hz");
+        //取得可下载资源
+        String ji_s = org.hzs.web_client.Property.applet.g会晤服务器("{指令0:'资源'}", "{}");
+        org.hzs.json.JSONObject ji2_JSON = org.hzs.json.JSONObject.d副本();
+        ji2_JSON.set(ji_s, null);
+        //搭建可能需下载资源
+        java.io.File file = null;
+        java.io.FileInputStream in = null;
+        Object key = null;
+        org.hzs.json.JSONObject ji1_JSON = org.hzs.json.JSONObject.d副本();
+        Iterator keys = ji2_JSON.keys();
+        while (keys.hasNext()) {
+            key = keys.next();
+            file = new java.io.File(org.hzs.web_client.Property.i工作路径_s + key);
+            if (!file.exists()) {
+                continue;
+            }
+            byte[] byt = new byte[(int) file.length()];
+            try {
+                in = new java.io.FileInputStream(file);
+                in.read(byt);
+                byt = org.hzs.安全.DIGEST.i摘要_byteArray(byt, org.hzs.安全.DIGEST.SHA_512);
+                ji1_JSON.put((String) key, new String(org.hzs.编码.Base64.i编码_byteArray(byt), "UTF-8"));
+            } catch (FileNotFoundException ex) {
+            } catch (IOException | NoSuchAlgorithmException ex) {
+            }
+        }
+        //再次取得可下载资源
+        ji_s = org.hzs.web_client.Property.applet.g会晤服务器("{指令0:'资源'}", ji1_JSON.toString(null));
+        ji1_JSON.set(ji_s, null);
+        //开始下载资源
+        keys = ji1_JSON.keys();
+        while (keys.hasNext()) {
+            key = keys.next();
+            ji_s = ji1_JSON.getString((String) key, null);
+            URL url = new URL(ji_s);
+            URLConnection conn = url.openConnection();
+            InputStream inStream = conn.getInputStream();
+            FileOutputStream fs = new FileOutputStream(org.hzs.web_client.Property.i工作路径_s + key);
+            byte[] buffer = new byte[1204];
+            int byteread;
+            while ((byteread = inStream.read(buffer)) != -1) {
+                fs.write(buffer, 0, byteread);
+            }
+            fs.flush();
+            fs.close();
+            fs = null;
+            inStream.close();
+        }
+        //开始缓冲资源
+        keys = ji2_JSON.keys();
+        while (keys.hasNext()) {
+            g缓冲资源((String) keys.next());
+        }
     }
 
     public void g失败() {

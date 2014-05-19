@@ -22,11 +22,11 @@ public class 混淆入口 {
         d.i助记文本_s(null);
         d.i金额$中文大写_s(null);
         //
-        d.i公钥_BASE64s();
-        d.g置密钥(null);
-        d.i加密_BASE64s(null);
-        d.i解密_s(null);
-        //
+//        d.i公钥_BASE64s();
+//        d.g置密钥(null);
+//        d.i加密_BASE64s(null);
+//        d.i解密_s(null);
+//        //
         d.EXCEL_置值(1, 1, 1, 1, null);
         d.EXCEL_置值(1, 1, 1, 1, 1D);
         d.EXCEL_置值(1, 1, 1, 1, 1L);

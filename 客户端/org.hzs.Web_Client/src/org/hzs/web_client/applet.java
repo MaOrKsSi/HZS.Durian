@@ -1,5 +1,6 @@
 package org.hzs.web_client;
 
+import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -350,6 +351,61 @@ public final class applet {
     }
 
     public void g退出() {
+        // <editor-fold defaultstate="collapsed" desc="自用">
+        class 自用 implements Cloneable {
+
+            public java.net.Socket d通信链 = null;
+            public java.io.OutputStream d写出 = null;
+            public byte[] i密文_byteArray = null;
+
+            public 自用 d副本() throws CloneNotSupportedException {
+                return (自用) super.clone();
+            }
+
+            public void close() {
+                if (d写出 != null) {
+                    try {
+                        d写出.close();
+                    } catch (java.io.IOException ex) {
+                    }
+                    d写出 = null;
+                }
+                if (d通信链 != null) {
+                    try {
+                        d通信链.close();
+                    } catch (java.io.IOException ex) {
+                    }
+                    d通信链 = null;
+                }
+                i密文_byteArray = null;
+            }
+        }// </editor-fold>
+        自用 ji自用 = null;
+        try {
+            ji自用.i密文_byteArray = org.hzs.安全.AES.i加密_byteArray(org.hzs.web_client.Property.i会晤号_byteArray, org.hzs.web_client.Property.AES_Key);
+            //在密文头部加入会晤号
+            ji自用.i密文_byteArray = java.util.Arrays.copyOf(ji自用.i密文_byteArray, ji自用.i密文_byteArray.length + 4);
+            System.arraycopy(ji自用.i密文_byteArray, 0, ji自用.i密文_byteArray, 4, ji自用.i密文_byteArray.length - 4);
+            System.arraycopy(org.hzs.web_client.Property.i会晤号_byteArray, 0, ji自用.i密文_byteArray, 0, 4);
+            //
+            ji自用.d通信链 = new java.net.Socket(org.hzs.web_client.Property.i服务器IP_s, org.hzs.web_client.Property.i服务器端口_i);
+            ji自用.d写出 = ji自用.d通信链.getOutputStream();
+            ji自用.d写出.write(ji自用.i密文_byteArray);
+            ji自用.d写出.flush();
+            ji自用.d通信链.shutdownOutput();
+            System.exit(0);
+        } catch (IOException ex) {
+            Logger.getLogger(applet.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            if (ji自用 != null) {
+                ji自用.close();
+                ji自用 = null;
+            }
+        }
+    }
+
+    public void g褈入() {
+        org.hzs.web_client.Property.webEngine.load(org.hzs.web_client.Property.web);
     }
 
     //==============================================================================================================================    
@@ -493,73 +549,73 @@ public final class applet {
             ji_BD = null;
         }
     }
-
-    //采用http方式时使用==============================================================================================================================
-    public String i公钥_BASE64s() {
-        byte[] ji_byteArray = null;
-        try {
-            ji_byteArray = org.hzs.web_client.Property.RSA.i公钥_byteArray();
-            ji_byteArray = org.hzs.编码.Base64.i编码_byteArray(ji_byteArray);
-            return new String(ji_byteArray, "UTF-8");
-        } catch (java.io.UnsupportedEncodingException ex) {
-            Logger.getLogger(applet.class.getName()).log(Level.SEVERE, null, ex);
-            return "";
-        } finally {
-            ji_byteArray = null;
-        }
-    }
-
-    public void g置密钥(final String ci密钥_BASE64s) {
-        byte[] ji_byteArray = null;
-        try {
-            ji_byteArray = ci密钥_BASE64s.getBytes("UTF-8");
-            ji_byteArray = org.hzs.编码.Base64.i解码_byteArray(ji_byteArray);
-            org.hzs.web_client.Property.iAES密钥_byteArray = org.hzs.web_client.Property.RSA.i用私钥解密_byteArray(ji_byteArray);
-        } catch (java.io.UnsupportedEncodingException ex) {
-            Logger.getLogger(applet.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (java.security.NoSuchAlgorithmException | javax.crypto.NoSuchPaddingException | java.security.InvalidKeyException | javax.crypto.IllegalBlockSizeException | javax.crypto.BadPaddingException | java.io.IOException ex) {
-            Logger.getLogger(applet.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            ji_byteArray = null;
-        }
-    }
-
-    public String i加密_BASE64s(final String ci待加密_s) {
-        if (ci待加密_s == null) {
-            return "";
-        }
-        byte[] ji_byteArray = null;
-        try {
-            ji_byteArray = ci待加密_s.getBytes("UTF-8");
-            ji_byteArray = org.hzs.安全.AES.i加密_byteArray(ji_byteArray, org.hzs.web_client.Property.AES_Key);
-            ji_byteArray = org.hzs.编码.Base64.i编码_byteArray(ji_byteArray);
-            return new String(ji_byteArray, "UTF-8");
-        } catch (java.io.UnsupportedEncodingException ex) {
-            Logger.getLogger(applet.class.getName()).log(Level.SEVERE, null, ex);
-            return "";
-        } finally {
-            ji_byteArray = null;
-        }
-    }
-
-    public String i解密_s(final String ci待解密_BASE64s) {
-        if (ci待解密_BASE64s == null) {
-            return "";
-        }
-        byte[] ji_byteArray = null;
-        try {
-            ji_byteArray = ci待解密_BASE64s.getBytes("UTF-8");
-            ji_byteArray = org.hzs.编码.Base64.i解码_byteArray(ji_byteArray);
-            ji_byteArray = org.hzs.安全.AES.i解密_byteArray(ji_byteArray, org.hzs.web_client.Property.AES_Key);
-            return new String(ji_byteArray, "UTF-8");
-        } catch (java.io.UnsupportedEncodingException ex) {
-            Logger.getLogger(applet.class.getName()).log(Level.SEVERE, null, ex);
-            return "";
-        } finally {
-            ji_byteArray = null;
-        }
-    }
-
+//
+//    //采用http方式时使用==============================================================================================================================
+//    public String i公钥_BASE64s() {
+//        byte[] ji_byteArray = null;
+//        try {
+//            ji_byteArray = org.hzs.web_client.Property.RSA.i公钥_byteArray();
+//            ji_byteArray = org.hzs.编码.Base64.i编码_byteArray(ji_byteArray);
+//            return new String(ji_byteArray, "UTF-8");
+//        } catch (java.io.UnsupportedEncodingException ex) {
+//            Logger.getLogger(applet.class.getName()).log(Level.SEVERE, null, ex);
+//            return "";
+//        } finally {
+//            ji_byteArray = null;
+//        }
+//    }
+//
+//    public void g置密钥(final String ci密钥_BASE64s) {
+//        byte[] ji_byteArray = null;
+//        try {
+//            ji_byteArray = ci密钥_BASE64s.getBytes("UTF-8");
+//            ji_byteArray = org.hzs.编码.Base64.i解码_byteArray(ji_byteArray);
+//            org.hzs.web_client.Property.iAES密钥_byteArray = org.hzs.web_client.Property.RSA.i用私钥解密_byteArray(ji_byteArray);
+//        } catch (java.io.UnsupportedEncodingException ex) {
+//            Logger.getLogger(applet.class.getName()).log(Level.SEVERE, null, ex);
+//        } catch (java.security.NoSuchAlgorithmException | javax.crypto.NoSuchPaddingException | java.security.InvalidKeyException | javax.crypto.IllegalBlockSizeException | javax.crypto.BadPaddingException | java.io.IOException ex) {
+//            Logger.getLogger(applet.class.getName()).log(Level.SEVERE, null, ex);
+//        } finally {
+//            ji_byteArray = null;
+//        }
+//    }
+//
+//    public String i加密_BASE64s(final String ci待加密_s) {
+//        if (ci待加密_s == null) {
+//            return "";
+//        }
+//        byte[] ji_byteArray = null;
+//        try {
+//            ji_byteArray = ci待加密_s.getBytes("UTF-8");
+//            ji_byteArray = org.hzs.安全.AES.i加密_byteArray(ji_byteArray, org.hzs.web_client.Property.AES_Key);
+//            ji_byteArray = org.hzs.编码.Base64.i编码_byteArray(ji_byteArray);
+//            return new String(ji_byteArray, "UTF-8");
+//        } catch (java.io.UnsupportedEncodingException ex) {
+//            Logger.getLogger(applet.class.getName()).log(Level.SEVERE, null, ex);
+//            return "";
+//        } finally {
+//            ji_byteArray = null;
+//        }
+//    }
+//
+//    public String i解密_s(final String ci待解密_BASE64s) {
+//        if (ci待解密_BASE64s == null) {
+//            return "";
+//        }
+//        byte[] ji_byteArray = null;
+//        try {
+//            ji_byteArray = ci待解密_BASE64s.getBytes("UTF-8");
+//            ji_byteArray = org.hzs.编码.Base64.i解码_byteArray(ji_byteArray);
+//            ji_byteArray = org.hzs.安全.AES.i解密_byteArray(ji_byteArray, org.hzs.web_client.Property.AES_Key);
+//            return new String(ji_byteArray, "UTF-8");
+//        } catch (java.io.UnsupportedEncodingException ex) {
+//            Logger.getLogger(applet.class.getName()).log(Level.SEVERE, null, ex);
+//            return "";
+//        } finally {
+//            ji_byteArray = null;
+//        }
+//    }
+//
     //用于操作计算表==============================================================================================================================
     private java.util.TreeMap<Integer, org.apache.poi.hssf.usermodel.HSSFWorkbook> d工作簿 = new java.util.TreeMap<>();
 

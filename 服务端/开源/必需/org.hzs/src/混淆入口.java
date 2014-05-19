@@ -4,8 +4,8 @@ public class 混淆入口 {
     public static void main(final String[] args) {
         dd d1 = new dd();
         d1.close();
-        org.hzs.常用.d对象池.put(null, null);
-        org.hzs.常用.d对象池.get(null);
+//        org.hzs.常用.d对象池.put(null, null);
+//        org.hzs.常用.d对象池.get(null);
     }
 }
 

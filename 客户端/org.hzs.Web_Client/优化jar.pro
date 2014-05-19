@@ -1,10 +1,10 @@
 -injars dist\org.hzs.Web_Client.jar
 -outjars org.hzs.Web_Client.jar
 
--libraryjars 'C:\Program Files\Java\jre8\lib\rt.jar'
--libraryjars 'C:\Program Files\Java\jdk1.8\jre\lib\jce.jar'
--libraryjars 'D:\我的文档\NetBeansProjects\引擎\客户端\system\poi-3.9-20121203.jar'
--libraryjars 'D:\我的文档\NetBeansProjects\引擎\客户端\system\jfxrt.jar'
+-libraryjars '../../system/rt.jar'
+-libraryjars '../../system/jce.jar'
+-libraryjars '../../system/poi-3.9-20121203.jar'
+-libraryjars '../../system/jfxrt.jar'
 
 -keepattributes Exceptions
 

@@ -4,7 +4,6 @@ public class Property {
 
     public static final java.util.TreeMap<String, Object> d对象池 = new java.util.TreeMap();
     public static String i工作路径_s = null;
-    public static java.util.LinkedHashMap<String, byte[]> d资源指纹 = null;
     public static org.hzs.安全.RSA RSA = null;
     public static byte[] iAES密钥_byteArray = null;
     public static java.security.Key AES_Key = null;
@@ -13,12 +12,10 @@ public class Property {
     public static int i会晤次数_i = 0;
     public static final applet applet = new applet();
     public static javax.swing.JFrame frame = null;
-
-//   public static String i程序文件袷_s = null;
+    public static String web = null;
+    public static javafx.scene.web.WebEngine webEngine = null;
     public static int i服务器端口_i, i端口偏移_i, i打印端口_i, i本地服务端口_i;
-    public static String i服务器IP_s = null, i模块_s = null;
-    public static int i终端号_i;
-    public static org.hzs.json.JSONObject i需同步资源_JSON = null, i资源_JSON = null;
+    public static String i服务器IP_s = null;
 
     public static void init() throws CloneNotSupportedException, java.security.NoSuchAlgorithmException {
         RSA = new org.hzs.安全.RSA(5);
