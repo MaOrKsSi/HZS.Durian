@@ -21,16 +21,16 @@ public final class 权重 extends __ {
             return;
         }
         i负载均衡端口_i = i中心端口_i - 1;
-        org.hzs.server.Property.d线程池.execute(new 清理超时或访问频率过快的session());
+        org.hzs.server.负载均衡.Property.d线程池.execute(new 清理超时或访问频率过快的session());
         i内总权重_i = i权重_i;
         i外总权重_i = i权重_i;
         if (i公网IP_s != null) {
             i外服务器列表.put(i内网IP_s, i权重_i);
-            if (i业务服务_b) {
+            if (org.hzs.server.负载均衡.Property.i业务服务_b) {
                 i内服务器列表.put(i内网IP_s, i权重_i);
             }
         }
-        org.hzs.server.Property.d线程池.execute(new 接收其他服务器报告());
+        org.hzs.server.负载均衡.Property.d线程池.execute(new 接收其他服务器报告());
         jg向其他服务器报告及索取报告();
     }
 
@@ -178,7 +178,7 @@ public final class 权重 extends __ {
 
                 org.hzs.json.JSONObject i_JSON = null;
                 Object[] sessionid_Array = null;
-                org.hzs.server.Session session = null;
+                org.hzs.server.负载均衡.Session session = null;
                 long i当前时间_l;
 
                 void close() {
@@ -202,7 +202,8 @@ public final class 权重 extends __ {
                     for (int ji_i = ji自用.sessionid_Array.length - 1; ji_i >= 0; ji_i--) {
                         ji自用.session = session_集合.get(ji自用.sessionid_Array[ji_i]);
                         //移除超时session 或 访问过于频繁的session
-                        if (ji自用.i当前时间_l - ji自用.session.i最近使用时间_l > org.hzs.server.Session.i超时时限_l || ji自用.session.i访问频率_i > ji自用.session.i频率上限_i) {
+                        if (ji自用.i当前时间_l - ji自用.session.i最近使用时间_l > org.hzs.server.负载均衡.Session.时限_l
+                                || ji自用.session.i访问频率_i > org.hzs.server.负载均衡.Property.i频率上限_i) {
                             session_集合.remove(ji自用.sessionid_Array[ji_i]);
                             if (d业务 != null) {
                                 d业务.removeSession(ji_i);

@@ -3,28 +3,26 @@
  */
 package org.hzs.server.负载均衡;
 
+import java.io.IOException;
 import java.net.SocketException;
 
 public abstract class __ {
 
-    protected static volatile java.util.TreeMap<Integer, org.hzs.server.Session> session_集合 = new java.util.TreeMap<>();
-
+    protected static volatile java.util.TreeMap<Integer, org.hzs.server.负载均衡.Session> session_集合 = new java.util.TreeMap<>();
     protected static org.hzs.server.业务.__ d业务 = null;
-    protected static int i中心端口_i = org.hzs.server.Property.i中心端口_i;
+    protected static int i中心端口_i = org.hzs.server.负载均衡.Property.i中心端口_i;
     protected static volatile int i内总权重_i = 0, i外总权重_i = 0;
     protected static int i权重_i = 0;
     protected static String i内网IP_s = null;
     protected static volatile String i公网IP_s = null;
-    protected static boolean i业务服务_b = true;
     protected static volatile java.util.TreeMap<String, Integer> i外服务器列表 = null;//<IP,权重>
     protected static volatile java.util.TreeMap<String, Integer> i内服务器列表 = null;//<IP,权重>
     protected static final java.util.LinkedList<String> i集群内服务器列表 = new java.util.LinkedList<>();
 
-    public static void init(final org.hzs.json.JSONArray ci_ArrayJSON, final boolean ci负载服务_b, final boolean ci业务服务_b) throws SocketException {
+    public static void init(final org.hzs.json.JSONArray ci_ArrayJSON) throws SocketException, IOException {
         //希望有人提供好的对cpu测速方法，要求能够抵御优化，不能被优化掉哦
-        i业务服务_b = ci业务服务_b;
         init1(ci_ArrayJSON);
-        if (ci负载服务_b) {
+        if (org.hzs.server.负载均衡.Property.i负载服务_b) {
             init2();
         }
 

@@ -1,5 +1,7 @@
 package org.hzs.web_client;
 
+import java.io.IOException;
+
 public class Property {
 
     public static final java.util.TreeMap<String, Object> d对象池 = new java.util.TreeMap();
@@ -10,14 +12,15 @@ public class Property {
     public static java.security.PublicKey i服务器公钥 = null;
     public static byte[] i会晤号_byteArray = new byte[4];//4字节支持40亿用户，够用
     public static int i会晤次数_i = 0;
-    public static final applet applet = new applet();
+    public static applet applet = null;
     public static javax.swing.JFrame frame = null;
     public static String web = null;
     public static javafx.scene.web.WebEngine webEngine = null;
     public static int i服务器端口_i, i端口偏移_i, i打印端口_i, i本地服务端口_i;
     public static String i服务器IP_s = null;
 
-    public static void init() throws CloneNotSupportedException, java.security.NoSuchAlgorithmException {
+    public static void init() throws IOException {
+        applet = new applet();
         RSA = new org.hzs.安全.RSA(5);
         iAES密钥_byteArray = new byte[16];
         (new java.util.Random()).nextBytes(iAES密钥_byteArray);

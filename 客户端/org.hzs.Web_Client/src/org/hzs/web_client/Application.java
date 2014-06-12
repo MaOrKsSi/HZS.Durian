@@ -2,9 +2,16 @@ package org.hzs.web_client;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
+import java.nio.channels.SocketChannel;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Iterator;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.crypto.BadPaddingException;
@@ -51,7 +58,7 @@ public class Application extends javax.swing.JApplet {
 
                     //
                     i.JApplet.start();
-                } catch (CloneNotSupportedException | org.hzs.logging.error | NoSuchAlgorithmException ex) {
+                } catch (CloneNotSupportedException | org.hzs.logging.error | IOException ex) {
                     Logger.getLogger(Application.class.getName()).log(Level.SEVERE, null, ex);
                 } finally {
                     ji_error = null;
@@ -237,14 +244,6 @@ public class Application extends javax.swing.JApplet {
             try {
                 ji_error = org.hzs.logging.error.d副本();
                 ji自用 = new 自用();
-                //
-//                org.hzs.json.JSONObject ji_JSON = null;
-//                i.i服务器列表_ArrayJSON = org.hzs.json.JSONArray.d出列();
-//                ji_JSON = org.hzs.json.JSONObject.d出列();
-//                ji_JSON.put("服务器IP_s", "115.28.52.17");
-//                ji_JSON.put("服务器端口_i", org.hzs.web_client.Property.i本地服务端口_i);
-//                i.i服务器列表_ArrayJSON.put(ji_JSON);
-//                ji_JSON = null;
                 //与服务握手，顺便检测是否连通，取得服务的服务器，采用随机抽取，达到减轻单一服务器压力的目的
                 ji自用.d不确定数 = new java.util.Random();
                 int ji1_i = i.i服务器列表_ArrayJSON.size();
@@ -326,37 +325,56 @@ public class Application extends javax.swing.JApplet {
             // <editor-fold defaultstate="collapsed" desc="自用">
             class 自用 {
 
-                public java.net.Socket d通信链 = null;
-                public java.io.OutputStream d写出 = null;
-                public java.io.InputStream d读入 = null;
-                public org.hzs.json.JSONObject i_JSON = null;
-                public byte[] i密文_byteArray = null, i明文_byteArray = null;
+                org.hzs.json.JSONObject i_JSON = null;
+                byte[] i密文_byteArray = null, i明文_byteArray = null;
+                Selector selector = null;
+                SocketChannel socketChannel = null;
+                ByteBuffer i接收缓冲区 = ByteBuffer.allocate(5 * 1024 * 1024), i发送缓冲区 = ByteBuffer.allocate(10 * 1024);//发送默认10K，接收默认5M。
+                InetSocketAddress i服务器端地址 = null;
+
+                Set<SelectionKey> selectionKeys = null;
+                Iterator<SelectionKey> iterator = null;
+                SelectionKey selectionKey = null;
+                SocketChannel client = null;
+                int cont;
 
                 public void close() {
-                    if (d写出 != null) {
-                        try {
-                            d写出.close();
-                        } catch (IOException ex) {
-                        }
-                        d写出 = null;
-                    }
-                    if (d读入 != null) {
-                        try {
-                            d读入.close();
-                        } catch (IOException ex) {
-                        }
-                        d读入 = null;
-                    }
-                    if (d通信链 != null) {
-                        try {
-                            d通信链.close();
-                        } catch (IOException ex) {
-                        }
-                        d通信链 = null;
-                    }
                     if (i_JSON != null) {
                         i_JSON.clear();
                         i_JSON = null;
+                    }
+                    i密文_byteArray = null;
+                    i明文_byteArray = null;
+                    if (selector != null) {
+                        try {
+                            selector.close();
+                        } catch (IOException ex) {
+                        }
+                        selector = null;
+                    }
+                    if (socketChannel != null) {
+                        try {
+                            socketChannel.close();
+                        } catch (IOException ex) {
+                        }
+                        socketChannel = null;
+                    }
+                    i接收缓冲区 = null;
+                    i发送缓冲区 = null;
+                    i服务器端地址 = null;
+
+                    if (selectionKeys != null) {
+                        selectionKeys.clear();
+                        selectionKeys = null;
+                    }
+                    iterator = null;
+                    selectionKey = null;
+                    if (client != null) {
+                        try {
+                            client.close();
+                        } catch (IOException ex) {
+                        }
+                        client = null;
                     }
                 }
             }
@@ -364,45 +382,81 @@ public class Application extends javax.swing.JApplet {
             自用 ji自用 = null;
             try {
                 ji自用 = new 自用();
-                //取得服务器公钥
-                {
-                    ji自用.d通信链 = new java.net.Socket(服务器IP_s, 服务器端口_i);
-                    ji自用.d通信链.shutdownOutput();
-                    ji自用.d读入 = ji自用.d通信链.getInputStream();
-                    byte[] ji缓冲_byteArray = new byte[1024];
-                    ji自用.i明文_byteArray = new byte[0];
-                    int ji_i;
-                    while ((ji_i = ji自用.d读入.read(ji缓冲_byteArray)) > 0) {
-                        ji自用.i明文_byteArray = java.util.Arrays.copyOf(ji自用.i明文_byteArray, ji自用.i明文_byteArray.length + ji_i);
-                        System.arraycopy(ji缓冲_byteArray, 0, ji自用.i明文_byteArray, ji自用.i明文_byteArray.length - ji_i, ji_i);
+
+                ji自用.i服务器端地址 = new InetSocketAddress(服务器IP_s, 服务器端口_i);
+                // 打开socket通道  
+                ji自用.socketChannel = SocketChannel.open();
+                // 设置为非阻塞方式  
+                ji自用.socketChannel.configureBlocking(false);
+                // 打开选择器  
+                ji自用.selector = Selector.open();
+                // 注册连接服务端socket动作  
+                ji自用.socketChannel.register(ji自用.selector, SelectionKey.OP_CONNECT);
+                // 连接  
+                ji自用.socketChannel.connect(ji自用.i服务器端地址);
+
+                while (true) {
+                    //选择一组键，其相应的通道已为 I/O 操作准备就绪。  
+                    //此方法执行处于阻塞模式的选择操作。  
+                    ji自用.selector.select();
+                    //返回此选择器的已选择键集。  
+                    ji自用.selectionKeys = ji自用.selector.selectedKeys();
+                    //System.out.println(selectionKeys.size());  
+                    ji自用.iterator = ji自用.selectionKeys.iterator();
+                    if (ji自用.iterator.hasNext()) {
+                        ji自用.selectionKey = ji自用.iterator.next();
+                        if (ji自用.selectionKey.isConnectable()) {
+                            ji自用.client = (SocketChannel) ji自用.selectionKey.channel();
+                            // 判断此通道上是否正在进行连接操作。  
+                            // 完成套接字通道的连接过程。  
+                            if (ji自用.client.isConnectionPending()) {
+                                ji自用.client.finishConnect();
+                                ji自用.i发送缓冲区.clear();
+                                ji自用.i发送缓冲区.put("1".getBytes());
+                                //将缓冲区各标志复位,因为向里面put了数据标志被改变要想从中读取数据发向服务器,就要复位  
+                                ji自用.i发送缓冲区.flip();
+                                ji自用.client.write(ji自用.i发送缓冲区);
+                            }
+                            ji自用.client.register(ji自用.selector, SelectionKey.OP_READ);
+                        } else if (ji自用.selectionKey.isReadable()) {
+                            ji自用.client = (SocketChannel) ji自用.selectionKey.channel();
+                            //将缓冲区清空以备下次读取  
+                            ji自用.i接收缓冲区.clear();
+                            //读取服务器发送来的数据到缓冲区中
+                            ji自用.cont = ji自用.client.read(ji自用.i接收缓冲区);
+                            ji自用.i密文_byteArray = ji自用.i接收缓冲区.array();
+                            ji自用.i密文_byteArray = java.util.Arrays.copyOf(ji自用.i密文_byteArray, ji自用.cont);
+                            if (org.hzs.web_client.Property.i服务器公钥 == null) {
+                                org.hzs.web_client.Property.i服务器公钥 = org.hzs.安全.RSA.i公钥(ji自用.i密文_byteArray);
+                                ji自用.client.register(ji自用.selector, SelectionKey.OP_WRITE);
+                            } else {
+                                ji自用.i明文_byteArray = org.hzs.安全.AES.i解密_byteArray(ji自用.i密文_byteArray, org.hzs.web_client.Property.AES_Key);
+                                ji自用.i明文_byteArray = org.hzs.压缩解压.Gzip.i解压_byteArray(ji自用.i明文_byteArray);
+                                ji自用.i_JSON = org.hzs.json.JSONObject.d副本();
+                                ji自用.i_JSON.set(new String(ji自用.i明文_byteArray, "UTF-8"), ci_error);
+                                //解析
+                                org.hzs.web_client.Property.i会晤号_byteArray = org.hzs.lang.转换.int_2_byteArray(ji自用.i_JSON.getInt("会晤号_i", ci_error));
+                                org.hzs.web_client.Property.i服务器IP_s = ji自用.i_JSON.getString("IP_s", ci_error);
+                                org.hzs.web_client.Property.i服务器端口_i = ji自用.i_JSON.getInt("端口_i", ci_error);
+                                ji自用.client.close();
+                                return;
+                            }
+                        } else if (ji自用.selectionKey.isWritable()) {
+                            ji自用.client = (SocketChannel) ji自用.selectionKey.channel();
+                            if (org.hzs.web_client.Property.i服务器公钥 != null) {
+                                ji自用.i密文_byteArray = org.hzs.web_client.Property.RSA.i用公钥加密_byteArray(org.hzs.web_client.Property.iAES密钥_byteArray, org.hzs.web_client.Property.i服务器公钥);
+                            } else {
+                                ji自用.i密文_byteArray = new byte[0];
+                            }
+                            ji自用.i发送缓冲区.clear();
+                            ji自用.i发送缓冲区.put(ji自用.i密文_byteArray);
+                            //将缓冲区各标志复位,因为向里面put了数据标志被改变要想从中读取数据发向服务器,就要复位  
+                            ji自用.i发送缓冲区.flip();
+                            ji自用.client.write(ji自用.i发送缓冲区);
+                            ji自用.client.register(ji自用.selector, SelectionKey.OP_READ);
+                        }
                     }
-                    org.hzs.web_client.Property.i服务器公钥 = org.hzs.安全.RSA.i公钥(ji自用.i明文_byteArray);
-                    ji缓冲_byteArray = null;
-                }
-                //将AES密钥发送到服务器，取得会晤号、IP、端口
-                {
-                    ji自用.d通信链 = new java.net.Socket(服务器IP_s, 服务器端口_i);
-                    ji自用.d写出 = ji自用.d通信链.getOutputStream();
-                    ji自用.i密文_byteArray = org.hzs.web_client.Property.RSA.i用公钥加密_byteArray(org.hzs.web_client.Property.iAES密钥_byteArray, org.hzs.web_client.Property.i服务器公钥);
-                    ji自用.d写出.write(ji自用.i密文_byteArray);
-                    ji自用.d写出.flush();
-                    ji自用.d通信链.shutdownOutput();
-                    ji自用.d读入 = ji自用.d通信链.getInputStream();
-                    byte[] ji缓冲_byteArray = new byte[1024];
-                    ji自用.i密文_byteArray = new byte[0];
-                    int ji_i;
-                    while ((ji_i = ji自用.d读入.read(ji缓冲_byteArray)) > 0) {
-                        ji自用.i密文_byteArray = java.util.Arrays.copyOf(ji自用.i密文_byteArray, ji自用.i密文_byteArray.length + ji_i);
-                        System.arraycopy(ji缓冲_byteArray, 0, ji自用.i密文_byteArray, ji自用.i密文_byteArray.length - ji_i, ji_i);
-                    }
-                    ji自用.i明文_byteArray = org.hzs.安全.AES.i解密_byteArray(ji自用.i密文_byteArray, org.hzs.web_client.Property.AES_Key);
-                    ji自用.i明文_byteArray = org.hzs.压缩解压.Gzip.i解压_byteArray(ji自用.i明文_byteArray);
-                    ji自用.i_JSON = org.hzs.json.JSONObject.d副本();
-                    ji自用.i_JSON.set(new String(ji自用.i明文_byteArray, "UTF-8"), ci_error);
-                    //解析
-                    org.hzs.web_client.Property.i会晤号_byteArray = org.hzs.lang.转换.int_2_byteArray(ji自用.i_JSON.getInt("会晤号_i", ci_error));
-                    org.hzs.web_client.Property.i服务器IP_s = ji自用.i_JSON.getString("IP_s", ci_error);
-                    org.hzs.web_client.Property.i服务器端口_i = ji自用.i_JSON.getInt("端口_i", ci_error);
+                    ji自用.selectionKeys.clear();
                 }
             } catch (IOException | NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException | InvalidKeySpecException ex) {
                 Logger.getLogger(Application.class.getName()).log(Level.SEVERE, null, ex);
@@ -444,13 +498,12 @@ public class Application extends javax.swing.JApplet {
         public void run() {
             for (;;) {
                 try {
-                    Thread.sleep(5_000);
+                    Thread.sleep(5_000);//5″循环一次，当会晤次数小于等于零，则会晤服务器，确保服务器不失效
                 } catch (InterruptedException ex) {
                 }
                 org.hzs.web_client.Property.i会晤次数_i--;
                 if (org.hzs.web_client.Property.i会晤次数_i <= 0) {
                     org.hzs.web_client.Property.applet.g会晤服务器("{}", "{}");
-                    org.hzs.web_client.Property.i会晤次数_i = 11;
                 }
             }
         }

@@ -1,9 +1,10 @@
 
+import java.io.IOException;
 import org.hzs.logging.error;
 
 public class 混淆入口 {
 
-    public static void main(String[] args) throws error {
+    public static void main(String[] args) throws error, IOException {
         org.hzs.web_client.Application.g开始(null);
         org.hzs.json.JSONArray ji_ArrayJSON = org.hzs.json.JSONArray.d副本();
         org.hzs.json.JSONObject ji_JSON = org.hzs.json.JSONObject.d副本();
@@ -18,7 +19,9 @@ public class 混淆入口 {
         d.EXCEL_新建文档();
         d.g格式ArrayJSON(null, null);
         d.g蜂鸣();
-        d.g選择文档_ArrayJSONs(null, null);
+        d.i获取文档名_ArrayJSONs(null, null);
+        d.i获取文档名_s(null, null);
+        d.i获取文档内容_BASE64s(null);
         d.i助记文本_s(null);
         d.i金额$中文大写_s(null);
         //

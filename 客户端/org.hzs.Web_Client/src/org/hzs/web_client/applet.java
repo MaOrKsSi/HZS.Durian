@@ -1,10 +1,15 @@
 package org.hzs.web_client;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
+import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
+import java.nio.channels.SocketChannel;
+import java.util.Iterator;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.stage.FileChooser;
 
 public final class applet {
 
@@ -12,12 +17,67 @@ public final class applet {
 
         java.awt.Toolkit d蜂鸣 = null;
         boolean i未握手_b = true;
+        Selector selector = null;
+        SocketChannel socketChannel = null;
+        final ByteBuffer i接收缓冲区 = ByteBuffer.allocate(5 * 1024 * 1024), i发送缓冲区 = ByteBuffer.allocate(10 * 1024);//发送默认10K，接收默认5M。
+        InetSocketAddress i服务器端地址 = null;
     }
     i i = null;
 
-    public applet() {
+    public void init() throws IOException {
         i = new i();
         i.d蜂鸣 = (new java.awt.Frame()).getToolkit();
+
+        i.i服务器端地址 = new InetSocketAddress(org.hzs.web_client.Property.i服务器IP_s, org.hzs.web_client.Property.i服务器端口_i);
+        // 打开socket通道  
+        i.socketChannel = SocketChannel.open();
+        // 设置为非阻塞方式  
+        i.socketChannel.configureBlocking(false);
+        // 打开选择器  
+        i.selector = Selector.open();
+        // 注册连接服务端socket动作  
+        i.socketChannel.register(i.selector, SelectionKey.OP_CONNECT);
+        // 连接  
+        i.socketChannel.connect(i.i服务器端地址);
+
+        //连接服务器
+        Set<SelectionKey> selectionKeys;
+        Iterator<SelectionKey> iterator;
+        SelectionKey selectionKey;
+        SocketChannel client;
+        while (true) {
+            //选择一组键，其相应的通道已为 I/O 操作准备就绪。  
+            //此方法执行处于阻塞模式的选择操作。  
+            i.selector.select();
+            //返回此选择器的已选择键集。  
+            selectionKeys = i.selector.selectedKeys();
+            //System.out.println(selectionKeys.size());  
+            iterator = selectionKeys.iterator();
+            while (iterator.hasNext()) {
+                selectionKey = iterator.next();
+                if (selectionKey.isConnectable()) {
+                    client = (SocketChannel) selectionKey.channel();
+                    // 判断此通道上是否正在进行连接操作。  
+                    // 完成套接字通道的连接过程。  
+                    if (client.isConnectionPending()) {
+                        client.finishConnect();
+                        i.i发送缓冲区.clear();
+                        i.i发送缓冲区.put("1".getBytes());
+                        //将缓冲区各标志复位,因为向里面put了数据标志被改变要想从中读取数据发向服务器,就要复位  
+                        i.i发送缓冲区.flip();
+                        client.write(i.i发送缓冲区);
+                    }
+                    client.register(i.selector, SelectionKey.OP_READ);//客户端先写后读
+                } else if (selectionKey.isReadable()) {
+                    i.i发送缓冲区.clear();
+                    client = (SocketChannel) selectionKey.channel();
+                    client.read(i.i发送缓冲区);
+                    client.register(i.selector, SelectionKey.OP_WRITE);
+                    return;//连接成功，则退出
+                }
+            }
+            selectionKeys.clear();
+        }
     }
 
     /**
@@ -34,8 +94,7 @@ public final class applet {
                 java.net.URI uri = new java.net.URI(org.hzs.web_client.Application.d打印_HttpHandler.i本地服务网址_s);
                 desktop.browse(uri);
             }
-//         Runtime.getRuntime().exec("\"" + Property.i程序文件袷_s + "\\Internet Explorer\\IEXPLORE.EXE\" \"http://localhost:" + (8080 - Property.i端口偏移_i) + "/\"");
-        } catch (java.io.IOException | URISyntaxException ex) {
+        } catch (java.io.IOException | java.net.URISyntaxException ex) {
             Logger.getLogger(applet.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
@@ -120,81 +179,6 @@ public final class applet {
     }
 
     /**
-     * @param ci过滤扩展名_ArrayJSONs
-     * @param ci提示_s
-     * @return
-     */
-    public String g選择文档_ArrayJSONs(final String ci过滤扩展名_ArrayJSONs, final String ci提示_s) {
-        // <editor-fold defaultstate="collapsed" desc="自用">
-        class 自用 implements Cloneable {
-
-            public FileChooser d文档選择窗 = null;
-            public java.util.List<String> i扩展档列表 = null;
-            public java.util.List<java.io.File> i文档 = null;
-            public FileChooser.ExtensionFilter d扩展档过滤 = null;
-            public org.hzs.json.JSONArray i_JSONArray = null;
-
-            public 自用 d副本() throws CloneNotSupportedException {
-                return (自用) super.clone();
-            }
-
-            public void close() {
-                d文档選择窗 = null;
-                if (i扩展档列表 != null) {
-                    i扩展档列表.clear();
-                    i扩展档列表 = null;
-                }
-                i文档 = null;
-                d扩展档过滤 = null;
-                i_JSONArray = null;
-            }
-        }// </editor-fold>
-        org.hzs.logging.error ji_error = null;
-        自用 ji自用 = null;
-        try {
-            ji_error = org.hzs.logging.error.d副本();
-            ji自用 = (自用) Property.d对象池.get(自用.class.getName());
-            if (ji自用 == null) {
-                ji自用 = new 自用();
-                Property.d对象池.put(自用.class.getName(), ji自用);
-            }
-            ji自用 = ji自用.d副本();
-            //
-            ji自用.d文档選择窗 = new FileChooser();
-            //建立过滤
-            ji自用.i_JSONArray = org.hzs.json.JSONArray.d副本();
-            ji自用.i_JSONArray.set(ci过滤扩展名_ArrayJSONs, ji_error);
-            ji自用.i扩展档列表 = new java.util.ArrayList<String>();
-            int ji1_i = ji自用.i_JSONArray.size();
-            for (int ji2_i = 0; ji2_i < ji1_i; ji2_i++) {
-                ji自用.i扩展档列表.add("*." + ji自用.i_JSONArray.getString(ji2_i));
-            }
-            ji自用.d扩展档过滤 = new FileChooser.ExtensionFilter(ci提示_s, ji自用.i扩展档列表);
-            ji自用.d文档選择窗.getExtensionFilters().add(ji自用.d扩展档过滤);
-            ji自用.i文档 = ji自用.d文档選择窗.showOpenMultipleDialog(null);//以完全模式显示文档选择窗
-            //labelFile.setText(file.getPath()); 
-            if (ji自用.i文档 == null) {
-                return "[]";
-            }
-            ji自用.i_JSONArray = new org.hzs.json.JSONArray();
-            Object[] ddd = ji自用.i文档.toArray();
-            for (Object ddd1 : ddd) {
-                ji自用.i_JSONArray.put(((java.io.File) ddd1).getPath().replaceAll("\\\\", "/"));
-            }
-            return ji自用.i_JSONArray.toString();
-        } catch (org.hzs.logging.error | CloneNotSupportedException ex) {
-            Logger.getLogger(applet.class.getName()).log(Level.SEVERE, null, ex);
-            return "[]";
-        } finally {
-            if (ji自用 != null) {
-                ji自用.close();
-                ji自用 = null;
-            }
-            ji_error = null;
-        }
-    }
-
-    /**
      * @param ci指令_s
      * @param ci参數_s
      * @return
@@ -203,40 +187,22 @@ public final class applet {
         // <editor-fold defaultstate="collapsed" desc="自用">
         class 自用 implements Cloneable {
 
-            public java.net.Socket d通信链 = null;
-            public java.io.OutputStream d写出 = null;
-            public java.io.InputStream d读入 = null;
-            public org.hzs.json.JSONObject i_JSON = null, i1_JSON = null;
-            public byte[] i密文_byteArray = null, i压缩前明文_byteArray = null, i压缩後明文_byteArray = null;
+            org.hzs.json.JSONObject i_JSON = null, i1_JSON = null;
+            byte[] i密文_byteArray = null, i压缩前明文_byteArray = null, i压缩後明文_byteArray = null;
 
             public 自用 d副本() throws CloneNotSupportedException {
                 return (自用) super.clone();
             }
 
             public void close() {
-                if (d写出 != null) {
-                    try {
-                        d写出.close();
-                    } catch (java.io.IOException ex) {
-                    }
-                    d写出 = null;
+                if (i_JSON != null) {
+                    i_JSON.clear();
+                    i_JSON = null;
                 }
-                if (d读入 != null) {
-                    try {
-                        d读入.close();
-                    } catch (java.io.IOException ex) {
-                    }
-                    d读入 = null;
+                if (i1_JSON != null) {
+                    i1_JSON.clear();
+                    i1_JSON = null;
                 }
-                if (d通信链 != null) {
-                    try {
-                        d通信链.close();
-                    } catch (java.io.IOException ex) {
-                    }
-                    d通信链 = null;
-                }
-                i_JSON = null;
-                i1_JSON = null;
                 i密文_byteArray = null;
                 i压缩前明文_byteArray = null;
                 i压缩後明文_byteArray = null;
@@ -268,8 +234,6 @@ public final class applet {
                 ji自用.i_JSON = org.hzs.json.JSONObject.d副本();
                 ji自用.i1_JSON = org.hzs.json.JSONObject.d副本();
                 ji自用.i1_JSON.set(ci指令_s, ji_error);
-//                ji自用.i1_JSON.put("指令", "用户");
-//                ji自用.i1_JSON.put("终端号_i", org.hzs.web_client.Property.i终端号_i);
                 ji自用.i_JSON.put("$", ji自用.i1_JSON, ji_error);
                 ji自用.i1_JSON = org.hzs.json.JSONObject.d副本();
                 ji自用.i1_JSON.set(ci参數_s, ji_error);
@@ -293,18 +257,41 @@ public final class applet {
                 return "{success:false,_:'本地错误'}";
             }
             try {//传送给服务器并取回结果
-                ji自用.d通信链 = new java.net.Socket(org.hzs.web_client.Property.i服务器IP_s, org.hzs.web_client.Property.i服务器端口_i);
-                ji自用.d写出 = ji自用.d通信链.getOutputStream();
-                ji自用.d写出.write(ji自用.i密文_byteArray);
-                ji自用.d写出.flush();
-                ji自用.d通信链.shutdownOutput();
-                ji自用.d读入 = ji自用.d通信链.getInputStream();
-                byte[] ji缓冲_byteArray = new byte[1024];
-                ji自用.i密文_byteArray = new byte[0];
-                int ji_i;
-                while ((ji_i = ji自用.d读入.read(ji缓冲_byteArray)) > 0) {
-                    ji自用.i密文_byteArray = java.util.Arrays.copyOf(ji自用.i密文_byteArray, ji自用.i密文_byteArray.length + ji_i);
-                    System.arraycopy(ji缓冲_byteArray, 0, ji自用.i密文_byteArray, ji自用.i密文_byteArray.length - ji_i, ji_i);
+                Set<SelectionKey> selectionKeys;
+                Iterator<SelectionKey> iterator;
+                SelectionKey selectionKey;
+                SocketChannel client;
+                while (true) {
+                    //选择一组键，其相应的通道已为 I/O 操作准备就绪。  
+                    //此方法执行处于阻塞模式的选择操作。  
+                    i.selector.select();
+                    //返回此选择器的已选择键集。  
+                    selectionKeys = i.selector.selectedKeys();
+                    //System.out.println(selectionKeys.size());  
+                    iterator = selectionKeys.iterator();
+                    if (iterator.hasNext()) {
+                        selectionKey = iterator.next();
+                        if (selectionKey.isReadable()) {
+                            client = (SocketChannel) selectionKey.channel();
+                            //将缓冲区清空以备下次读取  
+                            i.i接收缓冲区.clear();
+                            //读取服务器发送来的数据到缓冲区中  
+                            int cont = client.read(i.i接收缓冲区);
+                            ji自用.i密文_byteArray = i.i接收缓冲区.array();
+                            ji自用.i密文_byteArray = java.util.Arrays.copyOf(ji自用.i密文_byteArray, cont);
+                            client.register(i.selector, SelectionKey.OP_WRITE);
+                            break;
+                        } else if (selectionKey.isWritable()) {
+                            i.i发送缓冲区.clear();
+                            client = (SocketChannel) selectionKey.channel();
+                            i.i发送缓冲区.put(ji自用.i密文_byteArray);
+                            //将缓冲区各标志复位,因为向里面put了数据标志被改变要想从中读取数据发向服务器,就要复位  
+                            i.i发送缓冲区.flip();
+                            client.write(i.i发送缓冲区);
+                            client.register(i.selector, SelectionKey.OP_READ);
+                        }
+                    }
+                    selectionKeys.clear();
                 }
             } catch (java.io.IOException ex) {
                 Logger.getLogger(applet.class.getName()).log(Level.SEVERE, null, ex);
@@ -382,19 +369,42 @@ public final class applet {
         }// </editor-fold>
         自用 ji自用 = null;
         try {
+            ji自用 = new 自用();
+
             ji自用.i密文_byteArray = org.hzs.安全.AES.i加密_byteArray(org.hzs.web_client.Property.i会晤号_byteArray, org.hzs.web_client.Property.AES_Key);
             //在密文头部加入会晤号
             ji自用.i密文_byteArray = java.util.Arrays.copyOf(ji自用.i密文_byteArray, ji自用.i密文_byteArray.length + 4);
             System.arraycopy(ji自用.i密文_byteArray, 0, ji自用.i密文_byteArray, 4, ji自用.i密文_byteArray.length - 4);
             System.arraycopy(org.hzs.web_client.Property.i会晤号_byteArray, 0, ji自用.i密文_byteArray, 0, 4);
             //
-            ji自用.d通信链 = new java.net.Socket(org.hzs.web_client.Property.i服务器IP_s, org.hzs.web_client.Property.i服务器端口_i);
-            ji自用.d写出 = ji自用.d通信链.getOutputStream();
-            ji自用.d写出.write(ji自用.i密文_byteArray);
-            ji自用.d写出.flush();
-            ji自用.d通信链.shutdownOutput();
-            System.exit(0);
-        } catch (IOException ex) {
+            Set<SelectionKey> selectionKeys;
+            Iterator<SelectionKey> iterator;
+            SelectionKey selectionKey;
+            SocketChannel client;
+            while (true) {
+                //选择一组键，其相应的通道已为 I/O 操作准备就绪。  
+                //此方法执行处于阻塞模式的选择操作。  
+                i.selector.select();
+                //返回此选择器的已选择键集。  
+                selectionKeys = i.selector.selectedKeys();
+                //System.out.println(selectionKeys.size());  
+                iterator = selectionKeys.iterator();
+                if (iterator.hasNext()) {
+                    selectionKey = iterator.next();
+                    if (selectionKey.isWritable()) {
+                        i.i发送缓冲区.clear();
+                        client = (SocketChannel) selectionKey.channel();
+                        i.i发送缓冲区.put(ji自用.i密文_byteArray);
+                        //将缓冲区各标志复位,因为向里面put了数据标志被改变要想从中读取数据发向服务器,就要复位  
+                        i.i发送缓冲区.flip();
+                        client.write(i.i发送缓冲区);
+                        client.close();
+                        System.exit(0);
+                    }
+                }
+//                selectionKeys.clear();
+            }
+        } catch (java.io.IOException ex) {
             Logger.getLogger(applet.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
             if (ji自用 != null) {
@@ -402,10 +412,6 @@ public final class applet {
                 ji自用 = null;
             }
         }
-    }
-
-    public void g褈入() {
-        org.hzs.web_client.Property.webEngine.load(org.hzs.web_client.Property.web);
     }
 
     //==============================================================================================================================    
@@ -549,73 +555,6 @@ public final class applet {
             ji_BD = null;
         }
     }
-//
-//    //采用http方式时使用==============================================================================================================================
-//    public String i公钥_BASE64s() {
-//        byte[] ji_byteArray = null;
-//        try {
-//            ji_byteArray = org.hzs.web_client.Property.RSA.i公钥_byteArray();
-//            ji_byteArray = org.hzs.编码.Base64.i编码_byteArray(ji_byteArray);
-//            return new String(ji_byteArray, "UTF-8");
-//        } catch (java.io.UnsupportedEncodingException ex) {
-//            Logger.getLogger(applet.class.getName()).log(Level.SEVERE, null, ex);
-//            return "";
-//        } finally {
-//            ji_byteArray = null;
-//        }
-//    }
-//
-//    public void g置密钥(final String ci密钥_BASE64s) {
-//        byte[] ji_byteArray = null;
-//        try {
-//            ji_byteArray = ci密钥_BASE64s.getBytes("UTF-8");
-//            ji_byteArray = org.hzs.编码.Base64.i解码_byteArray(ji_byteArray);
-//            org.hzs.web_client.Property.iAES密钥_byteArray = org.hzs.web_client.Property.RSA.i用私钥解密_byteArray(ji_byteArray);
-//        } catch (java.io.UnsupportedEncodingException ex) {
-//            Logger.getLogger(applet.class.getName()).log(Level.SEVERE, null, ex);
-//        } catch (java.security.NoSuchAlgorithmException | javax.crypto.NoSuchPaddingException | java.security.InvalidKeyException | javax.crypto.IllegalBlockSizeException | javax.crypto.BadPaddingException | java.io.IOException ex) {
-//            Logger.getLogger(applet.class.getName()).log(Level.SEVERE, null, ex);
-//        } finally {
-//            ji_byteArray = null;
-//        }
-//    }
-//
-//    public String i加密_BASE64s(final String ci待加密_s) {
-//        if (ci待加密_s == null) {
-//            return "";
-//        }
-//        byte[] ji_byteArray = null;
-//        try {
-//            ji_byteArray = ci待加密_s.getBytes("UTF-8");
-//            ji_byteArray = org.hzs.安全.AES.i加密_byteArray(ji_byteArray, org.hzs.web_client.Property.AES_Key);
-//            ji_byteArray = org.hzs.编码.Base64.i编码_byteArray(ji_byteArray);
-//            return new String(ji_byteArray, "UTF-8");
-//        } catch (java.io.UnsupportedEncodingException ex) {
-//            Logger.getLogger(applet.class.getName()).log(Level.SEVERE, null, ex);
-//            return "";
-//        } finally {
-//            ji_byteArray = null;
-//        }
-//    }
-//
-//    public String i解密_s(final String ci待解密_BASE64s) {
-//        if (ci待解密_BASE64s == null) {
-//            return "";
-//        }
-//        byte[] ji_byteArray = null;
-//        try {
-//            ji_byteArray = ci待解密_BASE64s.getBytes("UTF-8");
-//            ji_byteArray = org.hzs.编码.Base64.i解码_byteArray(ji_byteArray);
-//            ji_byteArray = org.hzs.安全.AES.i解密_byteArray(ji_byteArray, org.hzs.web_client.Property.AES_Key);
-//            return new String(ji_byteArray, "UTF-8");
-//        } catch (java.io.UnsupportedEncodingException ex) {
-//            Logger.getLogger(applet.class.getName()).log(Level.SEVERE, null, ex);
-//            return "";
-//        } finally {
-//            ji_byteArray = null;
-//        }
-//    }
-//
     //用于操作计算表==============================================================================================================================
     private java.util.TreeMap<Integer, org.apache.poi.hssf.usermodel.HSSFWorkbook> d工作簿 = new java.util.TreeMap<>();
 
@@ -724,5 +663,204 @@ public final class applet {
         org.apache.poi.hssf.usermodel.HSSFSheet sheet = jd工作簿.getSheetAt(ci工作表_i);
         sheet.createFreezePane(ci行_i, ci列_i, ci行_i, ci列_i);
     }
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    //文档操作==============================================================================================================================
+    /**
+     * @param ci过滤扩展名_ArrayJSONs
+     * @param ci提示_s
+     * @return
+     */
+    public String i获取文档名_ArrayJSONs(final String ci过滤扩展名_ArrayJSONs, final String ci提示_s) {
+        // <editor-fold defaultstate="collapsed" desc="自用">
+        class 自用 implements Cloneable {
+
+            public javafx.stage.FileChooser d文档選择窗 = null;
+            public java.util.List<String> i扩展档列表 = null;
+            public java.util.List<java.io.File> i文档 = null;
+            public javafx.stage.FileChooser.ExtensionFilter d扩展档过滤 = null;
+            public org.hzs.json.JSONArray i_JSONArray = null;
+
+            public 自用 d副本() throws CloneNotSupportedException {
+                return (自用) super.clone();
+            }
+
+            public void close() {
+                d文档選择窗 = null;
+                if (i扩展档列表 != null) {
+                    i扩展档列表.clear();
+                    i扩展档列表 = null;
+                }
+                i文档 = null;
+                d扩展档过滤 = null;
+                i_JSONArray = null;
+            }
+        }// </editor-fold>
+        org.hzs.logging.error ji_error = null;
+        自用 ji自用 = null;
+        try {
+            ji_error = org.hzs.logging.error.d副本();
+            ji自用 = (自用) Property.d对象池.get(自用.class.getName());
+            if (ji自用 == null) {
+                ji自用 = new 自用();
+                Property.d对象池.put(自用.class.getName(), ji自用);
+            }
+            ji自用 = ji自用.d副本();
+            //
+            ji自用.d文档選择窗 = new javafx.stage.FileChooser();
+            //建立过滤
+            ji自用.i_JSONArray = org.hzs.json.JSONArray.d副本();
+            ji自用.i_JSONArray.set(ci过滤扩展名_ArrayJSONs, ji_error);
+            ji自用.i扩展档列表 = new java.util.ArrayList<String>();
+            int ji1_i = ji自用.i_JSONArray.size();
+            if (ji1_i > 0) {
+                for (int ji2_i = 0; ji2_i < ji1_i; ji2_i++) {
+                    ji自用.i扩展档列表.add("*." + ji自用.i_JSONArray.getString(ji2_i));
+                }
+                ji自用.d扩展档过滤 = new javafx.stage.FileChooser.ExtensionFilter(ci提示_s, ji自用.i扩展档列表);
+                ji自用.d文档選择窗.getExtensionFilters().add(ji自用.d扩展档过滤);
+            }
+            ji自用.i文档 = ji自用.d文档選择窗.showOpenMultipleDialog(null);//以完全模式显示文档选择窗
+            //labelFile.setText(file.getPath()); 
+            if (ji自用.i文档 == null) {
+                return "[]";
+            }
+            ji自用.i_JSONArray = new org.hzs.json.JSONArray();
+            Object[] ddd = ji自用.i文档.toArray();
+            for (Object ddd1 : ddd) {
+                ji自用.i_JSONArray.put(((java.io.File) ddd1).getPath().replaceAll("\\\\", "/"));
+            }
+            return ji自用.i_JSONArray.toString();
+        } catch (org.hzs.logging.error | CloneNotSupportedException ex) {
+            Logger.getLogger(applet.class.getName()).log(Level.SEVERE, null, ex);
+            return "[]";
+        } finally {
+            if (ji自用 != null) {
+                ji自用.close();
+                ji自用 = null;
+            }
+            ji_error = null;
+        }
+    }
+
+    public String i获取文档内容_BASE64s(final String ci文档_s) {
+        // <editor-fold defaultstate="collapsed" desc="自用">
+        class 自用 implements Cloneable {
+
+            public java.io.File file = null;
+            public java.io.FileInputStream in = null;
+            public byte[] i_byteArray = null;
+
+            public 自用 d副本() throws CloneNotSupportedException {
+                return (自用) super.clone();
+            }
+
+            public void close() {
+                file = null;
+                in = null;
+                i_byteArray = null;
+            }
+        }// </editor-fold>
+        自用 ji自用 = null;
+        try {
+            ji自用 = (自用) Property.d对象池.get(自用.class.getName());
+            if (ji自用 == null) {
+                ji自用 = new 自用();
+                Property.d对象池.put(自用.class.getName(), ji自用);
+            }
+            ji自用 = ji自用.d副本();
+            //
+            ji自用.file = new java.io.File(ci文档_s);
+            ji自用.in = new java.io.FileInputStream(ji自用.file);
+            ji自用.i_byteArray = new byte[(int) ji自用.file.length()];
+            ji自用.in.read(ji自用.i_byteArray);
+            ji自用.i_byteArray = org.hzs.编码.Base64.i编码_byteArray(ji自用.i_byteArray);
+            return new String(ji自用.i_byteArray, "UTF-8");
+        } catch (CloneNotSupportedException ex) {
+            Logger.getLogger(applet.class.getName()).log(Level.SEVERE, null, ex);
+            return "";
+        } catch (java.io.FileNotFoundException ex) {
+            Logger.getLogger(applet.class.getName()).log(Level.SEVERE, null, ex);
+            return "";
+        } catch (java.io.IOException ex) {
+            Logger.getLogger(applet.class.getName()).log(Level.SEVERE, null, ex);
+            return "";
+        } finally {
+            if (ji自用 != null) {
+                ji自用.close();
+                ji自用 = null;
+            }
+        }
+    }
+
+    /**
+     * @param ci过滤扩展名_ArrayJSONs
+     * @param ci提示_s
+     * @return
+     */
+    public String i获取文档名_s(final String ci过滤扩展名_ArrayJSONs, final String ci提示_s) {
+        // <editor-fold defaultstate="collapsed" desc="自用">
+        class 自用 implements Cloneable {
+
+            public javafx.stage.FileChooser d文档選择窗 = null;
+            public java.util.List<String> i扩展档列表 = null;
+            public java.io.File i文档 = null;
+            public javafx.stage.FileChooser.ExtensionFilter d扩展档过滤 = null;
+            public org.hzs.json.JSONArray i_JSONArray = null;
+
+            public 自用 d副本() throws CloneNotSupportedException {
+                return (自用) super.clone();
+            }
+
+            public void close() {
+                d文档選择窗 = null;
+                if (i扩展档列表 != null) {
+                    i扩展档列表.clear();
+                    i扩展档列表 = null;
+                }
+                i文档 = null;
+                d扩展档过滤 = null;
+                i_JSONArray = null;
+            }
+        }// </editor-fold>
+        org.hzs.logging.error ji_error = null;
+        自用 ji自用 = null;
+        try {
+            ji_error = org.hzs.logging.error.d副本();
+            ji自用 = (自用) Property.d对象池.get(自用.class.getName());
+            if (ji自用 == null) {
+                ji自用 = new 自用();
+                Property.d对象池.put(自用.class.getName(), ji自用);
+            }
+            ji自用 = ji自用.d副本();
+            //
+            ji自用.d文档選择窗 = new javafx.stage.FileChooser();
+            //建立过滤
+            ji自用.i_JSONArray = org.hzs.json.JSONArray.d副本();
+            ji自用.i_JSONArray.set(ci过滤扩展名_ArrayJSONs, ji_error);
+            ji自用.i扩展档列表 = new java.util.ArrayList<String>();
+            int ji1_i = ji自用.i_JSONArray.size();
+            if (ji1_i > 0) {
+                for (int ji2_i = 0; ji2_i < ji1_i; ji2_i++) {
+                    ji自用.i扩展档列表.add("*." + ji自用.i_JSONArray.getString(ji2_i));
+                }
+                ji自用.d扩展档过滤 = new javafx.stage.FileChooser.ExtensionFilter(ci提示_s, ji自用.i扩展档列表);
+                ji自用.d文档選择窗.getExtensionFilters().add(ji自用.d扩展档过滤);
+            }
+            ji自用.i文档 = ji自用.d文档選择窗.showSaveDialog(null); //以完全模式显示文档选择窗
+            //labelFile.setText(file.getPath()); 
+            if (ji自用.i文档 == null) {
+                return "";
+            }
+            return ji自用.i文档.getPath().replaceAll("\\\\", "/");
+        } catch (org.hzs.logging.error | CloneNotSupportedException ex) {
+            Logger.getLogger(applet.class.getName()).log(Level.SEVERE, null, ex);
+            return "";
+        } finally {
+            if (ji自用 != null) {
+                ji自用.close();
+                ji自用 = null;
+            }
+            ji_error = null;
+        }
+    }
 }
