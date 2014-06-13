@@ -57,5 +57,5 @@
 　　org.hzs.server      将bio模式改为nio模式，注册session尚未改成nio模式。<BR>
 　　org.hzs.Web_Client  将bio模式改为nio模式<BR>
 2014年06月13日<BR>
-　　org.hzs.server      修正重复监聽注册session的错误<BR>
+　　org.hzs.server      修正重复监聽注册session的错误，修正握手过程中的错误<BR>
 　　org.hzs.Web_Client  业务端口改为本地运算<BR>

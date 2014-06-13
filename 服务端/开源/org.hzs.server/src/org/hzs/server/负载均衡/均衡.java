@@ -1,7 +1,12 @@
 package org.hzs.server.负载均衡;
 
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 
 public class 均衡 extends __ {
 
@@ -824,10 +829,11 @@ public class 均衡 extends __ {
                             client = (java.nio.channels.SocketChannel) selectionKey.channel();
                             //输出到通道  
                             client.write(i发送缓冲区集.remove(client.toString()));
-                            client.register(selector, java.nio.channels.SelectionKey.OP_READ);
                             java.nio.channels.SocketChannel jd = i移除集.remove(client.toString());
                             if (jd != null) {
                                 jd.close();
+                            } else {
+                                client.register(selector, java.nio.channels.SelectionKey.OP_READ);
                             }
                         }
                     }
@@ -949,6 +955,7 @@ public class 均衡 extends __ {
                         continue;
                     }
                     {
+                        ji会晤.i_byteArray = org.hzs.server.负载均衡.Property.rsa.i用私钥解密_byteArray(ji会晤.i_byteArray);
                         ji会晤.d写出 = ji会晤.d通信链.getOutputStream();
                         ji会晤.d写出.write(ji会晤.i_byteArray);//递交客户端密钥
                         ji会晤.d通信链.shutdownOutput();
@@ -975,7 +982,7 @@ public class 均衡 extends __ {
                     i移除集.put(client.toString(), client);
 //                    client.register(selector, SelectionKey.OP_WRITE);//取得返回值，开始监听写操作
                 }
-            } catch (java.io.IOException | CloneNotSupportedException ex) {
+            } catch (java.io.IOException | CloneNotSupportedException | NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException ex) {
                 Logger.getLogger(均衡.class.getName()).log(Level.SEVERE, null, ex);
             } finally {
                 // <editor-fold defaultstate="collapsed" desc="释放资源">
@@ -1040,7 +1047,6 @@ public class 均衡 extends __ {
                             ji会晤.i_byteArray = java.util.Arrays.copyOf(ji会晤.i_byteArray, ji会晤.i_byteArray.length + ji_i);
                             System.arraycopy(ji自用.i缓冲_byteArray, 0, ji会晤.i_byteArray, ji会晤.i_byteArray.length - ji_i, ji_i);
                         }
-                        ji会晤.i_byteArray = org.hzs.server.负载均衡.Property.rsa.i用私钥解密_byteArray(ji会晤.i_byteArray);
                         //建立系统内部会晤
                         ji自用.session = new org.hzs.server.负载均衡.Session();
                         ji自用.session.AES_Key = new javax.crypto.spec.SecretKeySpec(ji会晤.i_byteArray, "AES");
@@ -1061,7 +1067,7 @@ public class 均衡 extends __ {
                         ji会晤.d写出 = ji会晤.d通信链.getOutputStream();
                         ji会晤.d写出.write(ji会晤.i_byteArray);
                     }
-                } catch (java.io.IOException | org.hzs.logging.error | java.security.NoSuchAlgorithmException | javax.crypto.NoSuchPaddingException | java.security.InvalidKeyException | javax.crypto.IllegalBlockSizeException | javax.crypto.BadPaddingException ex) {
+                } catch (java.io.IOException | org.hzs.logging.error ex) {
                     Logger.getLogger(均衡.class.getName()).log(Level.SEVERE, null, ex);
                 } finally {
                     if (d通信服务 != null) {
