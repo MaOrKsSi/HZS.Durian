@@ -19,9 +19,9 @@ public abstract class __ {
     protected static volatile java.util.TreeMap<String, Integer> i内服务器列表 = null;//<IP,权重>
     protected static final java.util.LinkedList<String> i集群内服务器列表 = new java.util.LinkedList<>();
 
-    public static void init(final org.hzs.json.JSONArray ci_ArrayJSON) throws SocketException, IOException {
+    public static void init() throws SocketException, IOException {
         //希望有人提供好的对cpu测速方法，要求能够抵御优化，不能被优化掉哦
-        init1(ci_ArrayJSON);
+        init1();
         if (org.hzs.server.负载均衡.Property.i负载服务_b) {
             init2();
         }
@@ -29,11 +29,11 @@ public abstract class __ {
         int ji硬线程数量_i = Runtime.getRuntime().availableProcessors();
         int ji剩余内存_i = (int) (Runtime.getRuntime().freeMemory() / 1024 / 1024);
         i权重_i = ji硬线程数量_i * ji剩余内存_i;
-        权重.init();
-        均衡.init();
+        权重.init_();
+        均衡.init_();
     }
 
-    private static void init1(final org.hzs.json.JSONArray ci_ArrayJSON) throws SocketException {
+    private static void init1() throws SocketException {
         java.util.Enumeration<java.net.NetworkInterface> mEnumeration = null;
         try {
             mEnumeration = java.net.NetworkInterface.getNetworkInterfaces();
@@ -50,9 +50,9 @@ public abstract class __ {
                 }
             }
             //
-            int ji1_i = ci_ArrayJSON.size();
+            int ji1_i = org.hzs.server.负载均衡.Property.i集群内服务器列表_ArrayJSON.size();
             for (int ji2_i = 0; ji2_i < ji1_i; ji2_i++) {
-                i集群内服务器列表.push(ci_ArrayJSON.getString(ji2_i));
+                i集群内服务器列表.push(org.hzs.server.负载均衡.Property.i集群内服务器列表_ArrayJSON.getString(ji2_i));
             }
             if (i集群内服务器列表.size() > 0) {
                 if (i内网IP_s == null) {

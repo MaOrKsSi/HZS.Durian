@@ -437,7 +437,7 @@ public class Application extends javax.swing.JApplet {
                                 //解析
                                 org.hzs.web_client.Property.i会晤号_byteArray = org.hzs.lang.转换.int_2_byteArray(ji自用.i_JSON.getInt("会晤号_i", ci_error));
                                 org.hzs.web_client.Property.i服务器IP_s = ji自用.i_JSON.getString("IP_s", ci_error);
-                                org.hzs.web_client.Property.i服务器端口_i = ji自用.i_JSON.getInt("端口_i", ci_error);
+                                org.hzs.web_client.Property.i服务器端口_i = 服务器端口_i + org.hzs.web_client.Property.i端口偏移_i + 1;
                                 ji自用.client.close();
                                 return;
                             }

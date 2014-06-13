@@ -24,7 +24,7 @@ public class NewClass {
             org.hzs.server.负载均衡.Property.i发送缓冲区容量_i = 10;
             org.hzs.server.负载均衡.Property.i接收缓冲区容量_i = 10;
             org.hzs.server.负载均衡.Property.i负载服务_b = true;
-//            org.hzs.server.负载均衡.Property.i连接时限_i = 23;
+            org.hzs.server.负载均衡.Property.i集群内服务器列表_ArrayJSON = org.hzs.json.JSONArray.d副本();
             org.hzs.server.负载均衡.Property.i频率上限_i = 36;
             //
             org.hzs.server.业务.__ d2 = new org.hzs.server.业务.__() {
@@ -51,7 +51,7 @@ public class NewClass {
             //启动负载均衡
             org.hzs.json.JSONArray dd = org.hzs.json.JSONArray.d副本();
             dd.put("127.0.0.1");
-            org.hzs.server.负载均衡.__.init(dd);
+            org.hzs.server.负载均衡.__.init();
             new org.hzs.server.负载均衡.均衡(1, null);
             System.out.println("启动完毕");
         } catch (UnsupportedEncodingException | NoSuchAlgorithmException | InvalidKeySpecException | SocketException ex) {

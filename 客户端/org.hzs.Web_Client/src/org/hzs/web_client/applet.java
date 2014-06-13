@@ -94,6 +94,7 @@ public final class applet {
                 java.net.URI uri = new java.net.URI(org.hzs.web_client.Application.d打印_HttpHandler.i本地服务网址_s);
                 desktop.browse(uri);
             }
+//         Runtime.getRuntime().exec("\"" + Property.i程序文件袷_s + "\\Internet Explorer\\IEXPLORE.EXE\" \"http://localhost:" + (8080 - Property.i端口偏移_i) + "/\"");
         } catch (java.io.IOException | java.net.URISyntaxException ex) {
             Logger.getLogger(applet.class.getName()).log(Level.SEVERE, null, ex);
         }

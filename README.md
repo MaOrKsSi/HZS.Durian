@@ -53,6 +53,9 @@
 2014年05月15日<BR>
 　　org.hzs.json　　　　1、修复序列化时遇到空值的错误；　2、反序列化支持同级引用<BR>
 　　org.hzs.Web_Client  增加缓存资源的功能，进行本地浏览<BR>
-2014年06月15日<BR>
+2014年06月12日<BR>
 　　org.hzs.server      将bio模式改为nio模式，注册session尚未改成nio模式。<BR>
 　　org.hzs.Web_Client  将bio模式改为nio模式<BR>
+2014年06月13日<BR>
+　　org.hzs.server      修正重复监聽注册session的错误<BR>
+　　org.hzs.Web_Client  业务端口改为本地运算<BR>

@@ -9,12 +9,13 @@ public class 均衡 extends __ {
     private int i内部端口_i, i外部端口_i;
     private static int i业务处理端口_i;
 
-    protected static void init() throws java.net.SocketException, java.io.IOException {
+    protected static void init_() throws java.net.SocketException, java.io.IOException {
         if (i公网IP_s == null) {
             return;
         }
         i业务处理端口_i = i中心端口_i + 1;
         org.hzs.server.负载均衡.Property.d线程池.execute(new 请求开始业务(i中心端口_i));
+        org.hzs.server.负载均衡.Property.d线程池.execute(new 监聽请求开始业务());
     }
 
     public 均衡(final int ci端口偏移_i, final org.hzs.server.业务.__ cd业务) throws java.net.SocketException, java.io.IOException {
@@ -27,7 +28,6 @@ public class 均衡 extends __ {
         org.hzs.server.负载均衡.Property.d线程池.execute(new 监聽对内业务(i内部端口_i));
         if (i公网IP_s != null) {
             org.hzs.server.负载均衡.Property.d线程池.execute(new 监聽对外业务(i外部端口_i));
-            org.hzs.server.负载均衡.Property.d线程池.execute(new 监聽请求开始业务());
         }
     }
 
@@ -992,7 +992,7 @@ public class 均衡 extends __ {
         }
     }
 
-    private class 监聽请求开始业务 implements Runnable {
+    private static class 监聽请求开始业务 implements Runnable {
 
         @Override
         public void run() {
@@ -1052,7 +1052,7 @@ public class 均衡 extends __ {
                         //
                         ji自用.i_JSON = org.hzs.json.JSONObject.d副本();
                         ji自用.i_JSON.put("IP_s", i公网IP_s);
-                        ji自用.i_JSON.put("端口_i", i外部端口_i);
+//                        ji自用.i_JSON.put("端口_i", i外部端口_i);
                         ji自用.i_JSON.put("会晤号_i", ji自用.i会晤号_i);
                         ji会晤.i_byteArray = ji自用.i_JSON.toString(null).getBytes("UTF-8");
                         ji会晤.i_byteArray = org.hzs.压缩解压.Gzip.i压缩_byteArray(ji会晤.i_byteArray);

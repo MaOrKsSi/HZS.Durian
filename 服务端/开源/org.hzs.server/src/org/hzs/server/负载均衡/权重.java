@@ -16,7 +16,7 @@ public final class 权重 extends __ {
 
     private static int i负载均衡端口_i;
 
-    protected static void init() {
+    protected static void init_() {
         if (i集群内服务器列表.size() <= 0) {
             return;
         }
