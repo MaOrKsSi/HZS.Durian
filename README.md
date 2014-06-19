@@ -60,4 +60,6 @@
 　　org.hzs.server　　　　修正重复监聽注册session的错误，修正握手过程中的错误<BR>
 　　org.hzs.Web_Client　　业务端口改为本地运算<BR>
 2014年06月14日<BR>
-　　增加示例
+　　增加示例<BR>
+2014年06月19日<BR>
+　　org.hzs.server　　　　修正非法申请服务时造成的拒绝服务。

@@ -819,11 +819,19 @@ public class 均衡 extends __ {
                             //将缓冲区清空以备下次读取  
                             i接收缓冲区.clear();
                             //读取服务器发送来的数据到缓冲区中
-                            count = client.read(i接收缓冲区);
-                            ji_byteArray = i接收缓冲区.array();
-                            ji_byteArray = java.util.Arrays.copyOf(ji_byteArray, count);
-                            run1(client, ji_byteArray);
-                            client.register(selector, java.nio.channels.SelectionKey.OP_WRITE);//取得返回值，开始监听写操作
+                            try {
+                                count = client.read(i接收缓冲区);
+                                if (count > 0) {
+                                    ji_byteArray = i接收缓冲区.array();
+                                    ji_byteArray = java.util.Arrays.copyOf(ji_byteArray, count);
+                                    run1(client, ji_byteArray);
+                                    client.register(selector, java.nio.channels.SelectionKey.OP_WRITE);//取得返回值，开始监听写操作
+                                } else {//客户端非法访问，比如用BIO方式访问
+                                    client.close();
+                                }
+                            } catch (java.io.IOException ex) {//处理客户端意外非正常关闭情况
+                                client.close();
+                            }
                         } else if (selectionKey.isWritable()) {
                             // 返回为之创建此键的通道。  
                             client = (java.nio.channels.SocketChannel) selectionKey.channel();
@@ -1058,7 +1066,6 @@ public class 均衡 extends __ {
                         //
                         ji自用.i_JSON = org.hzs.json.JSONObject.d副本();
                         ji自用.i_JSON.put("IP_s", i公网IP_s);
-//                        ji自用.i_JSON.put("端口_i", i外部端口_i);
                         ji自用.i_JSON.put("会晤号_i", ji自用.i会晤号_i);
                         ji会晤.i_byteArray = ji自用.i_JSON.toString(null).getBytes("UTF-8");
                         ji会晤.i_byteArray = org.hzs.压缩解压.Gzip.i压缩_byteArray(ji会晤.i_byteArray);
