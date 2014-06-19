@@ -573,7 +573,7 @@ public class 均衡 extends __ {
             while (true) {
                 try {
                     // 选择一组键，并且相应的通道已经打开  
-                    ji自用.cont = selector.select(1);
+                    ji自用.cont = selector.selectNow();
                     if (ji自用.cont == 0) {
                         continue;
                     }

@@ -135,11 +135,12 @@ public class Application extends javax.swing.JApplet {
             i.fxContainer.setScene(ji自用.scene);
             org.hzs.web_client.Property.frame.addWindowListener(new java.awt.event.WindowAdapter() {
                 @Override
-                public void windowClosed(java.awt.event.WindowEvent evt) {
-                    if (org.hzs.web_client.Property.applet != null) {
+                public void windowClosing(java.awt.event.WindowEvent evt) {
+                    if (org.hzs.web_client.Property.applet != null && org.hzs.web_client.Property.applet.i != null) {
                         org.hzs.web_client.Property.applet.g退出();
+                    } else {
+                        System.exit(0);
                     }
-                    System.exit(0);
                 }
             });
             //
@@ -292,6 +293,7 @@ public class Application extends javax.swing.JApplet {
                 ji自用.server.createContext("/", d打印_HttpHandler);
                 ji自用.server.start();
                 //开启业务模块
+                org.hzs.web_client.Property.applet.init();
                 org.hzs.web_client.Property.frame.setExtendedState(javax.swing.JFrame.MAXIMIZED_BOTH);
                 d业务_HttpHandler.g置业务模块();
                 org.hzs.web_client.Property.webEngine.load(d业务_HttpHandler.i本地服务网址_s);
@@ -398,7 +400,9 @@ public class Application extends javax.swing.JApplet {
                 while (true) {
                     //选择一组键，其相应的通道已为 I/O 操作准备就绪。  
                     //此方法执行处于阻塞模式的选择操作。  
-                    ji自用.selector.select();
+                    if (ji自用.selector.select(1000) <= 0) {
+                        throw ci_error;//链接超时，则认为网路不通
+                    }
                     //返回此选择器的已选择键集。  
                     ji自用.selectionKeys = ji自用.selector.selectedKeys();
                     //System.out.println(selectionKeys.size());  

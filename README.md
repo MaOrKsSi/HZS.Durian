@@ -62,4 +62,5 @@
 2014年06月14日<BR>
 　　增加示例<BR>
 2014年06月19日<BR>
-　　org.hzs.server　　　　修正非法申请服务时造成的拒绝服务。
+　　org.hzs.server　　　　修正非法申请服务时造成的拒绝服务。<BR>
+　　org.hzs.Web_Client　　提高判断网路是否联通的速度<BR>
