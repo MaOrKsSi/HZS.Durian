@@ -282,7 +282,7 @@ public class 均衡 extends __ {
             }
         }
 
-        private void jg第二步_向服务发送數据_1(final java.nio.channels.SelectionKey selectionKey, final java.net.InetSocketAddress cd通信链, final byte[] ci待发送數据_byteArray) throws java.io.IOException {
+        private boolean jg第二步_向服务发送數据_1(final java.nio.channels.SelectionKey selectionKey, final java.net.InetSocketAddress cd通信链, final byte[] ci待发送數据_byteArray) throws java.io.IOException {
             class 自用 {
 
                 java.util.Set<java.nio.channels.SelectionKey> selectionKeys = null;
@@ -305,9 +305,9 @@ public class 均衡 extends __ {
                 d对内_selector.put(cd通信链.toString(), ji自用.selector);
             }
             for (;;) {
-                //选择一组键，其相应的通道已为 I/O 操作准备就绪。  
-                //此方法执行处于阻塞模式的选择操作。  
-                ji自用.selector.select();
+                if (ji自用.selector.select(1000) <= 0) {
+                    return false;//1″内未取得连接，认为对方服务器无法提供服务
+                }
                 //返回此选择器的已选择键集。  
                 ji自用.selectionKeys = ji自用.selector.selectedKeys();
                 ji自用.iterator = ji自用.selectionKeys.iterator();
@@ -341,7 +341,7 @@ public class 均衡 extends __ {
                 }
                 ji自用.selectionKeys.clear();
                 if (ji自用.i_b) {
-                    return;
+                    return true;
                 }
             }
         }
@@ -410,10 +410,15 @@ public class 均衡 extends __ {
                         org.hzs.常用.d对象池.put(ji键_s + ":" + i内部端口_i, ji会晤.d通信链);
                     }
                     try {
-                        jg第二步_向服务发送數据_1(selectionKey, ji会晤.d通信链, ci待发送數据_byteArray);
-                        ////如果出现转交，则访问频率增加，否则不增加，以防非黑客捣乱带来影响。
-                        ji自用.session.i访问频率_i++;
-                        break;
+                        if (jg第二步_向服务发送數据_1(selectionKey, ji会晤.d通信链, ci待发送數据_byteArray)) ////如果出现转交，则访问频率增加，否则不增加，以防非黑客捣乱带来影响。
+                        {
+                            ji自用.session.i访问频率_i++;
+                            break;
+                        } else {
+                            //若不连通，说明该服务器出现故障或被人为停止，反正不能工作，所以在列表中删除此服务器。
+                            org.hzs.server.负载均衡.__.i内总权重_i -= i内服务器列表.get(ji键_s);
+                            i内服务器列表.remove(ji键_s);
+                        }
                     } catch (java.io.IOException ex) {
                         //将服务专向寻得的务器；如果不能连通，则移除此服务器，并继续寻工作量最小的服务器
                         org.hzs.server.负载均衡.__.i内总权重_i -= i内服务器列表.get(ji键_s);
@@ -637,6 +642,7 @@ public class 均衡 extends __ {
 
                     byte[] i缓冲_byteArray = new byte[1024], session = null;
                     org.hzs.json.JSONObject i_JSON = null;
+                    boolean i关闭终端_b = false;
 
                     自用 d副本() throws CloneNotSupportedException {
                         自用 jd = (自用) super.clone();
@@ -672,15 +678,8 @@ public class 均衡 extends __ {
                     // </editor-fold>
                     //校验访问者是否为集群内服务器，一定程度的防止恶意访问
                     if (i集群内服务器列表.indexOf(client.socket().getInetAddress().getHostAddress()) < 0) {
-                        ji会晤.i发送缓冲区 = java.nio.ByteBuffer.allocate(org.hzs.server.负载均衡.Property.i发送缓冲区容量_i);
-                        //向缓冲区中输入数据  
-                        ji会晤.i发送缓冲区.put("{success:true,_:''}".getBytes("UTF-8"));
-                        //将缓冲区各标志复位,因为向里面put了数据标志被改变要想从中读取数据发向服务器,就要复位  
-                        ji会晤.i发送缓冲区.flip();
-                        //
-                        i发送缓冲区集.put(client.toString(), ji会晤.i发送缓冲区);
-                        ji会晤.i发送缓冲区 = null;
-
+                        client.close();
+                        ji自用.i关闭终端_b = true;
                         return;
                     }
                     //
@@ -732,7 +731,9 @@ public class 均衡 extends __ {
                     ji会晤.i发送缓冲区 = null;
                 } finally {
                     try {
-                        client.register(selector, java.nio.channels.SelectionKey.OP_WRITE);//取得返回值，开始监听写操作
+                        if (!ji自用.i关闭终端_b) {
+                            client.register(selector, java.nio.channels.SelectionKey.OP_WRITE);//取得返回值，开始监听写操作
+                        }
                     } catch (java.nio.channels.ClosedChannelException ex) {
                         Logger.getLogger(均衡.class.getName()).log(Level.SEVERE, null, ex);
                     }
@@ -824,8 +825,11 @@ public class 均衡 extends __ {
                                 if (count > 0) {
                                     ji_byteArray = i接收缓冲区.array();
                                     ji_byteArray = java.util.Arrays.copyOf(ji_byteArray, count);
-                                    run1(client, ji_byteArray);
-                                    client.register(selector, java.nio.channels.SelectionKey.OP_WRITE);//取得返回值，开始监听写操作
+                                    if (run1(client, ji_byteArray)) {
+                                        client.register(selector, java.nio.channels.SelectionKey.OP_WRITE);//取得返回值，开始监听写操作
+                                    } else {
+                                        client.close();
+                                    }
                                 } else {//客户端非法访问，比如用BIO方式访问
                                     client.close();
                                 }
@@ -858,7 +862,7 @@ public class 均衡 extends __ {
             }
         }
 
-        public void run1(final java.nio.channels.SocketChannel client, final byte[] i_byteArray) {
+        public boolean run1(final java.nio.channels.SocketChannel client, final byte[] i_byteArray) {
             // <editor-fold defaultstate="collapsed" desc="自用">
             class 自用 implements Cloneable, org.hzs.Close {
 
@@ -933,7 +937,7 @@ public class 均衡 extends __ {
                         //
                         i发送缓冲区集.put(client.toString(), ji发送缓冲区);
 
-                        return;
+                        return true;
                     }
                 }
                 //随机选择负载服务器，不仅能降低网路压力，而且确保每个业务节点的压力相仿。基于管理软的客户总是需要退出，因此未考虑每台负载节点的所负责的客户端数量。
@@ -990,8 +994,10 @@ public class 均衡 extends __ {
                     i移除集.put(client.toString(), client);
 //                    client.register(selector, SelectionKey.OP_WRITE);//取得返回值，开始监听写操作
                 }
+                return true;
             } catch (java.io.IOException | CloneNotSupportedException | NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException ex) {
                 Logger.getLogger(均衡.class.getName()).log(Level.SEVERE, null, ex);
+                return false;
             } finally {
                 // <editor-fold defaultstate="collapsed" desc="释放资源">
                 if (ji自用 != null) {
@@ -1046,7 +1052,11 @@ public class 均衡 extends __ {
                     d通信服务 = new java.net.ServerSocket(i业务处理端口_i);//注意监听端口
                     for (;;) {
                         ji会晤.d通信链 = d通信服务.accept();
-
+                        //校验访问者是否为集群内服务器，一定程度的防止恶意访问
+                        if (i集群内服务器列表.indexOf(ji会晤.d通信链.getInetAddress().getHostAddress()) < 0) {
+                            ji会晤.d通信链.close();
+                            return;
+                        }
                         ji会晤.d读入 = ji会晤.d通信链.getInputStream();
                         //获取外连接数据，客户端密钥
                         ji会晤.i_byteArray = new byte[0];

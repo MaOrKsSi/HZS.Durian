@@ -8,6 +8,8 @@ package org.hzs.server.负载均衡;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.UnknownHostException;
+import java.util.Iterator;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.hzs.logging.error;
@@ -42,7 +44,7 @@ public final class 权重 extends __ {
         @Override
         public void run() {
             // <editor-fold defaultstate="collapsed" desc="自用">
-            class 自用 implements Cloneable {
+            class 自用 implements Cloneable, org.hzs.Close {
 
                 byte[] i缓冲_byteArray = new byte[128];
                 org.hzs.json.JSONObject i_JSON = null;
@@ -54,17 +56,9 @@ public final class 权重 extends __ {
                     jd.i缓冲_byteArray = jd.i缓冲_byteArray.clone();
                     return jd;
                 }
-
-                void close() {
-                    i缓冲_byteArray = null;
-                    if (i_JSON != null) {
-                        i_JSON.clear();
-                        i_JSON = null;
-                    }
-                }
             }// </editor-fold>
             // <editor-fold defaultstate="collapsed" desc="会晤">
-            class 会晤 implements Cloneable {
+            class 会晤 implements Cloneable, org.hzs.Close {
 
                 byte[] i_byteArray = null;
                 java.io.InputStream d读入 = null;
@@ -73,31 +67,6 @@ public final class 权重 extends __ {
 
                 会晤 d副本() throws CloneNotSupportedException {
                     return (会晤) super.clone();
-                }
-
-                void close() {
-                    i_byteArray = null;
-                    if (d通信链 != null) {
-                        if (d读入 != null) {
-                            try {
-                                d读入.close();
-                            } catch (IOException ex) {
-                            }
-                            d读入 = null;
-                        }
-                        if (d写出 != null) {
-                            try {
-                                d写出.close();
-                            } catch (IOException ex) {
-                            }
-                            d写出 = null;
-                        }
-                        try {
-                            d通信链.close();
-                        } catch (IOException ex) {
-                        }
-                        d通信链 = null;
-                    }
                 }
             }// </editor-fold>
             org.hzs.logging.error ji_error = null;
@@ -198,20 +167,37 @@ public final class 权重 extends __ {
                     } catch (InterruptedException ex) {
                     }
                     ji自用.i当前时间_l = java.util.Calendar.getInstance().getTimeInMillis();
-                    ji自用.sessionid_Array = org.hzs.server.负载均衡.__.session_集合.keySet().toArray();
-                    for (int ji_i = ji自用.sessionid_Array.length - 1; ji_i >= 0; ji_i--) {
-                        ji自用.session = session_集合.get(ji自用.sessionid_Array[ji_i]);
+                    if (org.hzs.server.负载均衡.__.session_集合.size() <= 0) {
+                        continue;
+                    }
+                    Set<Integer> keys = org.hzs.server.负载均衡.__.session_集合.keySet();
+                    for (Integer jjkey_i : keys) {
+                        ji自用.session = org.hzs.server.负载均衡.__.session_集合.get(jjkey_i);
                         //移除超时session 或 访问过于频繁的session
                         if (ji自用.i当前时间_l - ji自用.session.i最近使用时间_l > org.hzs.server.负载均衡.Session.时限_l
                                 || ji自用.session.i访问频率_i > org.hzs.server.负载均衡.Property.i频率上限_i) {
-                            session_集合.remove(ji自用.sessionid_Array[ji_i]);
+                            keys.remove(jjkey_i);
                             if (d业务 != null) {
-                                d业务.removeSession(ji_i);
+                                d业务.removeSession(jjkey_i);
                             }
                         } else {
                             ji自用.session.i访问频率_i = 0;//重置访问频率
                         }
                     }
+//                    ji自用.sessionid_Array = org.hzs.server.负载均衡.__.session_集合.keySet().toArray();
+//                    for (int ji_i = ji自用.sessionid_Array.length - 1; ji_i >= 0; ji_i--) {
+//                        ji自用.session = session_集合.get(ji自用.sessionid_Array[ji_i]);
+//                        //移除超时session 或 访问过于频繁的session
+//                        if (ji自用.i当前时间_l - ji自用.session.i最近使用时间_l > org.hzs.server.负载均衡.Session.时限_l
+//                                || ji自用.session.i访问频率_i > org.hzs.server.负载均衡.Property.i频率上限_i) {
+//                            session_集合.remove(ji自用.sessionid_Array[ji_i]);
+//                            if (d业务 != null) {
+//                                d业务.removeSession(ji_i);
+//                            }
+//                        } else {
+//                            ji自用.session.i访问频率_i = 0;//重置访问频率
+//                        }
+//                    }
                 }
             } finally {
                 if (ji自用 != null) {

@@ -400,7 +400,7 @@ public final class applet {
                         i.i发送缓冲区.flip();
                         client.write(i.i发送缓冲区);
                         client.close();
-                        System.exit(0);
+                        Application.g退出();
                     }
                 }
 //                selectionKeys.clear();
@@ -416,6 +416,7 @@ public final class applet {
     }
 
     //==============================================================================================================================    
+
     /**
      * @return 返回整理後的文本，如果出错则原样返回
      */

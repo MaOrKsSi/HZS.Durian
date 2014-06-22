@@ -45,7 +45,9 @@ public abstract class __ {
                     if (!inetAddress.isLoopbackAddress()) {
                         // 直接返回本地IP地址  
                         i内网IP_s = inetAddress.getHostAddress();
-                        break;
+                        if (!i内网IP_s.contains(":")) {
+                            break;
+                        }
                     }
                 }
             }

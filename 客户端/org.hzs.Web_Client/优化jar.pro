@@ -5,6 +5,7 @@
 -libraryjars '../../system/jce.jar'
 -libraryjars '../../system/poi-3.9-20121203.jar'
 -libraryjars '../../system/jfxrt.jar'
+-libraryjars '../../system/JTattoo.jar'
 
 -keepattributes Exceptions
 

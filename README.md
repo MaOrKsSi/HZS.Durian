@@ -64,3 +64,6 @@
 2014年06月19日<BR>
 　　org.hzs.server　　　　修正非法申请服务时造成的拒绝服务。<BR>
 　　org.hzs.Web_Client　　提高判断网路是否联通的速度<BR>
+2014年06月22日<BR>
+　　org.hzs.server　　　　修正分配任务时，因节点故障而超时的问题；修正获取负载节点时，未校验访问对象的问题<BR>
+　　org.hzs.Web_Client　　修正推出软件，不退出托盘图标的问题<BR>

@@ -25,6 +25,7 @@ public class Application extends javax.swing.JApplet {
 
     private final static class i {
 
+        static java.awt.SystemTray tray = null;
         static String i标题_s = null;
         static javafx.embed.swing.JFXPanel fxContainer = null;
         static javax.swing.JApplet JApplet = null;
@@ -50,7 +51,17 @@ public class Application extends javax.swing.JApplet {
                     org.hzs.web_client.Property.i本地服务端口_i = ci_JSON.getInt("本地服务端口_i", ji_error);
                     i.图标用图片URL = (java.net.URL) ci_JSON.get("图标用图片URL");
                     //
+                    try {
+                        javax.swing.UIManager.setLookAndFeel("com.jtattoo.plaf.smart.SmartLookAndFeel");
+//                        javax.swing.UIManager.setLookAndFeel("com.jtattoo.plaf.aluminium.AluminiumLookAndFeel");
+//                        javax.swing.UIManager.setLookAndFeel("com.jtattoo.plaf.mint.MintLookAndFeel");
+//                        javax.swing.UIManager.setLookAndFeel("com.jtattoo.plaf.fast.FastLookAndFeel");
+                    } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
+                        java.util.logging.Logger.getLogger(Application.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+                    }
+
                     org.hzs.web_client.Property.frame = new javax.swing.JFrame("正在登入，请耐心等待......");
+                    org.hzs.web_client.Property.frame.setIconImage(javax.imageio.ImageIO.read(i.图标用图片URL));
                     org.hzs.web_client.Property.frame.setDefaultCloseOperation(javax.swing.JFrame.EXIT_ON_CLOSE);
 
                     i.JApplet = new Application();
@@ -139,7 +150,7 @@ public class Application extends javax.swing.JApplet {
                     if (org.hzs.web_client.Property.applet != null && org.hzs.web_client.Property.applet.i != null) {
                         org.hzs.web_client.Property.applet.g退出();
                     } else {
-                        System.exit(0);
+                        g退出();
                     }
                 }
             });
@@ -155,10 +166,10 @@ public class Application extends javax.swing.JApplet {
             托盘init();
         } catch (UnsupportedEncodingException ex) {
             Logger.getLogger(Application.class.getName()).log(Level.SEVERE, null, ex);
-            System.exit(0);
+            g退出();
         } catch (Exception ex) {
             Logger.getLogger(Application.class.getName()).log(Level.SEVERE, null, ex);
-            System.exit(0);
+            g退出();
         } finally {
             if (ji自用 != null) {
                 ji自用.close();
@@ -167,51 +178,51 @@ public class Application extends javax.swing.JApplet {
         }
     }
 
+    public static void g退出() {
+        if (i.tray != null) {
+            i.tray.remove(i.trayIcon);
+        }
+        System.exit(0);
+    }
+
     private void 托盘init() {
         if (!java.awt.SystemTray.isSupported()) {//检查当前系统是否支持系统托盘。若不支持，直接返回
             return;
         }
-        java.awt.SystemTray tray = null;
         java.awt.Image image = null;
         java.awt.PopupMenu popupMenu = null;
         java.awt.MenuItem MenuItem = null;
-        try {
-            tray = java.awt.SystemTray.getSystemTray();//获取表示桌面托盘区的 SystemTray 实例。  
-            image = java.awt.Toolkit.getDefaultToolkit().getImage(i.图标用图片URL);
-            popupMenu = new java.awt.PopupMenu();
-            MenuItem = new java.awt.MenuItem("退出");
-            MenuItem.addActionListener(new java.awt.event.ActionListener() {
-                @Override
-                public void actionPerformed(java.awt.event.ActionEvent e) {
+        i.tray = java.awt.SystemTray.getSystemTray();
+        image = java.awt.Toolkit.getDefaultToolkit().getImage(i.图标用图片URL);
+        popupMenu = new java.awt.PopupMenu();
+        MenuItem = new java.awt.MenuItem("退出");
+        MenuItem.addActionListener(new java.awt.event.ActionListener() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                if (org.hzs.web_client.Property.applet != null && org.hzs.web_client.Property.applet.i != null) {
                     org.hzs.web_client.Property.applet.g退出();
-                    System.exit(0);
+                } else {
+                    g退出();
                 }
-            });
-            popupMenu.add(MenuItem);
-            i.trayIcon = new java.awt.TrayIcon(image, i.i标题_s, popupMenu);
-            i.trayIcon.addMouseListener(new java.awt.event.MouseAdapter() {
-                @Override
-                public void mouseClicked(java.awt.event.MouseEvent e) {
-                    if (e.getClickCount() == 2) {
-
-                        //注意下面的API调用，这个可以给用户提示信息  
-                        i.trayIcon.displayMessage("提示", "双击显示窗口！", java.awt.TrayIcon.MessageType.INFO);
-                        org.hzs.web_client.Property.frame.setVisible(true);
-                    }
-                }
-            });
-
-            //注意下面这个API调用，能够保证使用的图标被缩放到合适的比例  
-            i.trayIcon.setImageAutoSize(true);
-            try {
-                tray.add(i.trayIcon);  // 将 TrayIcon 添加到 SystemTray。   
-            } catch (java.awt.AWTException e) {
             }
-        } finally {
-            tray = null;
-            image = null;
-            popupMenu = null;
-            MenuItem = null;
+        });
+        popupMenu.add(MenuItem);
+        i.trayIcon = new java.awt.TrayIcon(image, i.i标题_s, popupMenu);
+        i.trayIcon.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (e.getClickCount() == 2) {
+
+                    //注意下面的API调用，这个可以给用户提示信息
+                    i.trayIcon.displayMessage("提示", "双击显示窗口！", java.awt.TrayIcon.MessageType.INFO);
+                    org.hzs.web_client.Property.frame.setVisible(true);
+                }
+            }
+        });
+        i.trayIcon.setImageAutoSize(true);
+        try {
+            i.tray.add(i.trayIcon);  // 将 TrayIcon 添加到 SystemTray。
+        } catch (java.awt.AWTException e) {
         }
     }
 
@@ -301,7 +312,7 @@ public class Application extends javax.swing.JApplet {
                 (new 维持连接()).start();
             } catch (NoSuchAlgorithmException ex) {
                 Logger.getLogger(Application.class.getName()).log(Level.SEVERE, null, ex);
-                System.exit(0);
+                g退出();
             } catch (org.hzs.logging.error ex) {
                 Logger.getLogger(Application.class.getName()).log(Level.SEVERE, null, ex);
                 d业务_HttpHandler.g失败();
@@ -312,7 +323,7 @@ public class Application extends javax.swing.JApplet {
                     d业务_HttpHandler.g失败();
                     org.hzs.web_client.Property.webEngine.load(d业务_HttpHandler.i本地服务网址_s);
                 } else {
-                    System.exit(0);
+                    g退出();
                 }
             } finally {
                 if (ji自用 != null) {
@@ -414,11 +425,11 @@ public class Application extends javax.swing.JApplet {
                             // 判断此通道上是否正在进行连接操作。  
                             // 完成套接字通道的连接过程。  
                             if (ji自用.client.isConnectionPending()) {
-                                ji自用.client.finishConnect();
                                 ji自用.i发送缓冲区.clear();
                                 ji自用.i发送缓冲区.put("1".getBytes());
                                 //将缓冲区各标志复位,因为向里面put了数据标志被改变要想从中读取数据发向服务器,就要复位  
                                 ji自用.i发送缓冲区.flip();
+                                ji自用.client.finishConnect();
                                 ji自用.client.write(ji自用.i发送缓冲区);
                             }
                             ji自用.client.register(ji自用.selector, SelectionKey.OP_READ);
