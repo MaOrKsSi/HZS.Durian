@@ -8,7 +8,6 @@ package org.hzs.server.负载均衡;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.UnknownHostException;
-import java.util.Iterator;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -79,6 +78,11 @@ public final class 权重 extends __ {
                     d通信服务 = new java.net.ServerSocket(i负载均衡端口_i);
                     for (;;) {
                         ji会晤.d通信链 = d通信服务.accept();
+                        //校验访问者是否为集群内服务器，一定程度的防止恶意访问
+                        if (i集群内服务器列表.indexOf(ji会晤.d通信链.getInetAddress().getHostAddress()) < 0) {
+                            ji会晤.d通信链.close();
+                            return;
+                        }
                         if (i公网IP_s != null) {
                             ji会晤.d读入 = ji会晤.d通信链.getInputStream();
                             ji会晤.i_byteArray = new byte[0];
